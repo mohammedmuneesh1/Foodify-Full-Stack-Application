@@ -1,0 +1,35 @@
+
+
+
+
+//PACKAGES INSTALLED 
+//1)Express 2) nodemon 3)dotenv 4) mongoose 5) typescript 6)morgan  7)express-rate-limit 8) jsonwebtoken  9) bcrypt 10) express-validator
+//11)hpp  // (HTTP Parameter Pollution) The primary purpose of hpp (HTTP Parameter Pollution middleware) is to ignore duplicate query parameters by retaining only the first occurrence of each parameter.  //example https://example.com/api/user?id=123&id=456 .  With hpp enabled, only the first id=123 would be considered, and id=456 would be ignored.
+
+
+
+//INSTALLED TYPESCRIPT RELATED
+//npm i --save-dev @types/express
+//npm i --save-dev @types/cors
+//npm i --save-dev @types/hpp
+
+
+// npm i ts-nod
+//npx tsc --init
+// npm install env-cmd --save-dev
+
+
+// "start": "env-cmd -f .env.prod node dist/bin/server.js",
+// "dev": "env-cmd -f .env.dev nodemon src/bin/server.ts",
+
+//env-cmd
+
+//env-cmd is a utility that allows you to set environment variables from a specified file before running a command. 
+//It makes it easy to load environment variables from a .env file into your Node.js
+// application without needing to manually configure them within your code.
+
+//This is particularly useful for managing different environments (like development, testing, and production)
+// where you might have different configurations. For example, you can have .env.dev for development and .env for production.
+
+//-f
+// -f flag specifies the file from which to load environment variables.  
