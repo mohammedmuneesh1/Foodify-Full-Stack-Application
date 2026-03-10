@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const CustomerSchema = new mongoose.Schema({
+const hotelownerSchema = new mongoose.Schema({
     fullName:{
         type: String,
         required: true,
@@ -28,6 +28,6 @@ const CustomerSchema = new mongoose.Schema({
 });
 
 
-const CustomerModel = mongoose.models?.Customer || mongoose.model("Customer", CustomerSchema);
-export default CustomerModel;
+const hotelownerModel = mongoose.models?.hotelOwner || mongoose.model("hotelOwner", hotelownerSchema);
+export default hotelownerModel;
  

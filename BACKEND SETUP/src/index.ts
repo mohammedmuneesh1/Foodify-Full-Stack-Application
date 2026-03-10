@@ -16,6 +16,7 @@ import logger from "./libs/winstonLogger";
 // import { router as AuthRoute } from "../src/app/authentication/route";
 import { router as AuthRoute } from "./app/authentication/route";
 import { router as CustomerRoute } from "./app/customer/customer.routes";
+import { router as DeliveryPartnerRoutes } from "./app/delivery-partner/deliveryPartner.routes";
 import connectDBFn from "./configs/dbConnectFn";
 import morganMiddleware from "./middleware/builtInMiddleware/morganMiddleware";
 
@@ -36,6 +37,7 @@ app.use(sanitize());                        // 7) Sanitize MongoDB operators
 // Routes
 app.use('/api/auth', AuthRoute);
 app.use('/api/customer', CustomerRoute);
+app.use('/api/deliveryPartner', DeliveryPartnerRoutes);
 
 
 
@@ -70,7 +72,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 //---------------------------------- WORKING + ERROR + ROUTE NOT FOUND + GLOBAL ERROR HANDLER  END ----------------------------------
-
 
 
 //------------------------------------------- SETTING UP THE SERVER START   -------------------------------------------

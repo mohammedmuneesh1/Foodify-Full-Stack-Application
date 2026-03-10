@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const CustomerSchema = new mongoose.Schema({
+const DeliveryPartnerSchema = new mongoose.Schema({
     fullName:{
         type: String,
         required: true,
@@ -28,6 +28,6 @@ const CustomerSchema = new mongoose.Schema({
 });
 
 
-const CustomerModel = mongoose.models?.Customer || mongoose.model("Customer", CustomerSchema);
-export default CustomerModel;
+const DeliveryPartnerModel = mongoose.models?.deliveryPartner || mongoose.model("deliveryPartner", DeliveryPartnerSchema);
+export default DeliveryPartnerModel;
  
