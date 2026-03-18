@@ -9,7 +9,6 @@ import { GENERATE_TOKEN_UTILS } from "../../utils/token.utils";
 
 export async function customerRegisterFn(req: Request, res: Response): Promise<Response> {
     const { fullName, email, password, mobile } = req.body;
-
     if (!fullName || !email || !password || !mobile) {
       return ResponseHandler(res, 400, false, null, "fullName, email, password, and mobile are required.");
     }
@@ -21,6 +20,13 @@ export async function customerRegisterFn(req: Request, res: Response): Promise<R
     const genSalt = await GENERATESALT_UTILS(10);
     const hashedPassword = await HASHPASSWORD_UTILS(String(password),genSalt);
 
+    if(!password || password.length <6){
+      return ResponseHandler(res, 400, false, null, "Password must be at least 6 characters long.");
+    }
+    if(!mobile || mobile.length <10){
+      return ResponseHandler(res, 400, false, null, "Mobile number must be at least 10 characters long.");
+    }
+
     const newCustomer = await CustomerModel.create({
       fullName: String(fullName).trim(),
       email: normalizedEmail,
@@ -28,6 +34,28 @@ export async function customerRegisterFn(req: Request, res: Response): Promise<R
       mobile: String(mobile).trim(),
       role: "Customer",
     });
+
+     const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET as string | undefined;
+     if (!accessTokenSecret)  return ResponseHandler(res, 500, false, null, "ACCESS_TOKEN_SECRET is not configured.");
+    
+        const token = GENERATE_TOKEN_UTILS(
+        { uId: newCustomer._id,
+          role: newCustomer.role 
+        },
+        accessTokenSecret,
+        7
+    );
+
+
+    res.cookie('token', token, 
+      { 
+        secure:false,  //false for http and true for https,
+        sameSite: "strict", //
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days,
+        httpOnly: true,
+       }
+    );
+
     return ResponseHandler(
       res,
       201,
@@ -44,6 +72,9 @@ export async function customerRegisterFn(req: Request, res: Response): Promise<R
       "Customer registered successfully."
     );
 }
+
+
+
 
 export async function customerLoginFn(req: Request, res: Response): Promise<Response> {
     const { email, password } = req.body;
@@ -100,4 +131,11 @@ export async function getCustomerByIdFn(req: Request, res: Response): Promise<Re
       return ResponseHandler(res, 404, false, null, "Customer not found.");
     }
     return ResponseHandler(res, 200, true, customer, "Customer found successfully.");
+}
+
+
+
+export async function CUSTOMER_SIGN_OUT_CONTROLLER(req:Request,res:Response):Promise<Response>{
+  res.clearCookie('token');
+  return ResponseHandler(res, 200, true, null, "Sign out successful.");
 }

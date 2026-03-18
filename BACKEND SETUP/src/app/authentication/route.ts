@@ -1,6 +1,7 @@
 import express from 'express'
 import tryCatch from '../../middleware/customMiddleware/tryCatch';
-import { demoFn, userLoginFn, userRegisterFn } from './controller';
+import { demoFn, SEND_EMAIL_OTP_CONTROLLER, UPDATE_PASSWORD_BY_EMAIL_CONTROLLER, userLoginFn, userRegisterFn, VERIFY_EMAIL_OTP_CONTROLLER } from './controller';
+import authMiddleware from '../../middleware/customMiddleware/authMiddleware';
 
 
 
@@ -23,7 +24,14 @@ export const router = express.Router();
  //-------------------------------------- USER ROUTE START---------------------------------------------------
  router.route("/user/registration").post(tryCatch(userRegisterFn))
  router.route('/demo').get(demoFn)
- router.route('/user/login').post(tryCatch(userLoginFn))
+ router.route('/user/login').post(tryCatch(userLoginFn));
+ router.route('/email/forget-password/send-otp').post(tryCatch(SEND_EMAIL_OTP_CONTROLLER));
+ router.route('/email/verify/otp').post(tryCatch(VERIFY_EMAIL_OTP_CONTROLLER));
+ router.route('/email/otp/update-password').post(tryCatch(UPDATE_PASSWORD_BY_EMAIL_CONTROLLER));
+
+
+
+
  //-------------------------------------- USER ROUTE END---------------------------------------------------
 
 

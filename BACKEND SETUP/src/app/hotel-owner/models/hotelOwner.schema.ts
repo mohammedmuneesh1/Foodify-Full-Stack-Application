@@ -20,14 +20,14 @@ const hotelownerSchema = new mongoose.Schema({
     },
     role:{
         type:String,
-        enum:['Delivery Partner','Admin','Customer'],
-        default:'Customer'
+        enum:['Delivery Partner','Admin','Hotel Owner'],
+        default:'Hotel Owner'
     }
 },{
     timestamps:true
 });
 
 
-const hotelownerModel = mongoose.models?.hotelOwner || mongoose.model("hotelOwner", hotelownerSchema);
-export default hotelownerModel;
+const HotelownerModel = mongoose.models?.hotelOwner || mongoose.model("hotelOwner", hotelownerSchema);
+export default HotelownerModel;
  

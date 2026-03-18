@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+
+*{
+  /* margin: 0;
+  padding: 0; */
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+body{
+  min-height: 100vh;
+  @apply text-[13px] sm:text-sm
+}
+
+
+@theme {
+  --color-primary: #ff4d2d;
+  --color-primary-hover: #e64323;
+  --color-bg-soft: #fff9f6;
+  --color-border-soft: #ddd;
+}
+
+
+
+/*TAILWIND CSS THEME START*/
+
+
+label{
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+button{
+  @apply cursor-pointer;
+}
+
+.inputStyle1 {
+  @apply w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500 placeholder:capitalize;
+}
+/*TAILWIND CSS THEME END*/

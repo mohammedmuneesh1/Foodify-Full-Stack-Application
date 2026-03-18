@@ -12,6 +12,12 @@ import verifyEmailModel from "./models/verifyEmail.shcema";
 import { getUserGeoLocationFn, userDeviceTrackingFn } from "./services/helper.function";
 import { hashTokenFn } from "../../utils/hash/hashToken";
 import LoginHistoryModel from "./models/loginHistory.schema";
+import CustomerModel from "../customer/models/customer.schema";
+import DeliveryPartnerModel from "../delivery-partner/models/deliveryPartner.schema";
+import HotelownerModel from "../hotel-owner/models/hotelOwner.schema";
+import { generateOTP } from "../../utils/generateOTP";
+import { COMPARE_PASSWORD_UTILS, HASHPASSWORD_UTILS } from "../../utils/bcrypt.utils";
+import { sendResetPasswordOTPEmailTemplateFn } from "../../email-template/sendResetPasswordOTPEmailTemplate";
 // import { forgetPasswordEmail } from "../../utils/email-templates/forgetPasswordMail";
 
 
@@ -215,8 +221,214 @@ export async function userResetPassword(req:Request,res:Response):Promise<any> {
 // ===============================================================  USER START  ============================================================================================
 
 
+// ===============================================================  SEND OTP TO MAIL   ============================================================================================
+export async function SEND_EMAIL_OTP_CONTROLLER(
+  req: Request,
+  res: Response
+): Promise<Response> {
+
+  const { email, role } = req.body;
+
+  if (!email || !role) {
+    return ResponseHandler(res, 200, false, null, "All fields are required.");
+  }
+
+  const roleConfig = {
+  Customer: {
+    model: CustomerModel,
+    idField: "customerId",
+    notFoundMsg: "Customer not found with provided email.",
+  },
+  "Delivery Partner": {
+    model: DeliveryPartnerModel,
+    idField: "deliveryPartnerId",
+    notFoundMsg: "Delivery Partner not found with provided email.",
+  },
+  "Hotel Owner": {
+    model: HotelownerModel,
+    idField: "hotelOwnerId",
+    notFoundMsg: "Hotel Owner not found with provided email.",
+  },
+} as const;
+
+  
+
+  const config = roleConfig[role as keyof typeof roleConfig];
+
+  if (!config) {
+    return ResponseHandler(res, 400, false, null, "Invalid role has been detected.");
+  }
+
+  const { model, idField, notFoundMsg } = config;
+
+  const user = await model.findOne({ email });
+
+  if (!user) {
+    return ResponseHandler(res, 200, false, null, notFoundMsg);
+  }
+
+  const otp = generateOTP();
+
+  const sendEmail = await sendResetPasswordOTPEmailTemplateFn(
+    email,
+    otp.toString()
+  );
+
+  if (!sendEmail?.success) {
+    return ResponseHandler(
+      res,
+      200,
+      false,
+      null,
+      "Technical issue while sending email. Try again later."
+    );
+  }
+
+  // dynamic field assignment
+  await ForgetPasswordModel.create({
+    [idField]: user._id,
+    email,
+    otp: await HASHPASSWORD_UTILS(otp.toString(), "10"),
+  });
+  return ResponseHandler(
+    res,
+    200,
+    true,
+    null,
+    "OTP has been sent to your email."
+  );
+}
+
+// ===============================================================  VERIFY OTP  ============================================================================================
+export async function VERIFY_EMAIL_OTP_CONTROLLER(req: Request, res: Response) {
+  const {email,otp,role} = req.body;
+  if(!email) {
+    return ResponseHandler(res, 200, false, null, "Email is required.");
+  }
+
+  if(!otp) {
+    return ResponseHandler(res, 200, false, null, "OTP is required.");
+  }
+
+  const roleConfig = {
+  Customer: {
+    model: CustomerModel,
+    idField: "customerId",
+    notFoundMsg: "Customer not found with provided email.",
+  },
+  "Delivery Partner": {
+    model: DeliveryPartnerModel,
+    idField: "deliveryPartnerId",
+    notFoundMsg: "Delivery Partner not found with provided email.",
+  },
+  "Hotel Owner": {
+    model: HotelownerModel,
+    idField: "hotelOwnerId",
+    notFoundMsg: "Hotel Owner not found with provided email.",
+  },
+} as const;
+
+  const config = roleConfig[role as keyof typeof roleConfig];
+
+  if (!config) {
+    return ResponseHandler(res, 400, false, null, "Invalid role has been detected.");
+  }
+
+  const { model, idField, notFoundMsg } = config;
+  const user = await model.findOne({ email });
+  if (!user) {
+    return ResponseHandler(res, 200, false, null, notFoundMsg);
+  }
+
+  const forgetpasswordDocument = await ForgetPasswordModel.findOne({
+    [idField]: user._id,
+    email,
+  }).sort({createdAt:-1});
+
+  if(!forgetpasswordDocument) {
+    return ResponseHandler(res, 200, false, null, "OTP has been expired.");
+  }
+
+  if(forgetpasswordDocument.isOtpVerified){
+    return ResponseHandler(res, 200, false, null, "OTP has already been verified. If you want to reset your password, please request to otp.");
+  }
+  const isOtpMatch =await  COMPARE_PASSWORD_UTILS(otp.toString(),forgetpasswordDocument.otp);
+
+  if(!isOtpMatch) {
+    return ResponseHandler(res, 200, false, null, "OTP does not match.");
+  }
+
+  forgetpasswordDocument.isOtpVerified = true;
+  await forgetpasswordDocument.save();
+  return ResponseHandler(res, 200, true, null, "OTP has been verified.");
+}
 
 
+
+export async function UPDATE_PASSWORD_BY_EMAIL_CONTROLLER(req:Request,res:Response):Promise<Response> {
+
+  const {email,role,password,confirmPassword} = req.body;
+
+  if(!email) {
+    return ResponseHandler(res, 200, false, null, "Email is required.");
+  }
+
+  if(!role) {
+    return ResponseHandler(res, 200, false, null, "OTP is required.");
+  }
+
+  if(!password){
+    return ResponseHandler(res, 200, false, null, "Password is required.");
+  }
+
+  if(!confirmPassword){
+    return ResponseHandler(res, 200, false, null, "Confirm Password is required.");
+  }
+
+  if(password !== confirmPassword){
+    return ResponseHandler(res, 200, false, null, "Password and confirm password should be same.");
+  }
+
+
+  const roleConfig = {
+  Customer: {
+    model: CustomerModel,
+    idField: "customerId",
+    notFoundMsg: "Customer not found with provided email.",
+  },
+  "Delivery Partner": {
+    model: DeliveryPartnerModel,
+    idField: "deliveryPartnerId",
+    notFoundMsg: "Delivery Partner not found with provided email.",
+  },
+  "Hotel Owner": {
+    model: HotelownerModel,
+    idField: "hotelOwnerId",
+    notFoundMsg: "Hotel Owner not found with provided email.",
+  },
+} as const;
+
+  const config = roleConfig[role as keyof typeof roleConfig];
+
+  if (!config) {
+    return ResponseHandler(res, 400, false, null, "Invalid role has been detected.");
+  }
+
+  const { model, idField, notFoundMsg } = config;
+
+  const user = await model.findOne({ email });
+
+  if (!user) {
+    return ResponseHandler(res, 200, false, null, notFoundMsg);
+  }
+  
+  const hashPassword = await HASHPASSWORD_UTILS(password,"10");
+
+  user.password = hashPassword;
+  await user.save();
+  
+  return ResponseHandler(res,200,true,null,"Password has been updated.");
+}
 
 
 

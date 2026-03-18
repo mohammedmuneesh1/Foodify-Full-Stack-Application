@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 
 export const HASHPASSWORD_UTILS = async (password:string,salt:string) => {
-    return await bcrypt.hash(password,10);
+    return await bcrypt.hash(password,Number(salt));
 
 }
 

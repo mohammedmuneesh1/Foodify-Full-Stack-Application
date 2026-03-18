@@ -17,6 +17,7 @@ import logger from "./libs/winstonLogger";
 import { router as AuthRoute } from "./app/authentication/route";
 import { router as CustomerRoute } from "./app/customer/customer.routes";
 import { router as DeliveryPartnerRoutes } from "./app/delivery-partner/deliveryPartner.routes";
+import {router as HotelOwners} from "./app/hotel-owner/hotelOwner.routes";
 import connectDBFn from "./configs/dbConnectFn";
 import morganMiddleware from "./middleware/builtInMiddleware/morganMiddleware";
 
@@ -36,8 +37,25 @@ app.use(helmetConfig);                      // 6) Secure headers
 app.use(sanitize());                        // 7) Sanitize MongoDB operators
 // Routes
 app.use('/api/auth', AuthRoute);
-app.use('/api/customer', CustomerRoute);
-app.use('/api/deliveryPartner', DeliveryPartnerRoutes);
+app.use('/api/customers', CustomerRoute);
+app.use('/api/deliverypartners', DeliveryPartnerRoutes);
+app.use('/api/hotelowners', HotelOwners);
+
+
+export interface AuthUserInterface{
+  uId: string;
+  role: string;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?:AuthUserInterface; 
+       // or better: user?: JwtPayload | YourUserType
+    }
+  }
+}
+
 
 
 

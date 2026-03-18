@@ -21,7 +21,7 @@ const DeliveryPartnerSchema = new mongoose.Schema({
     role:{
         type:String,
         enum:['Delivery Partner','Admin','Customer'],
-        default:'Customer'
+        default:'Delivery Partner'
     }
 },{
     timestamps:true

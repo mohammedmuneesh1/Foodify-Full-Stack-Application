@@ -20,7 +20,7 @@ const CustomerSchema = new mongoose.Schema({
     },
     role:{
         type:String,
-        enum:['Delivery Partner','Admin','Customer'],
+        enum:['Delivery Partner','Admin','Customer',"Hotel Owner"],
         default:'Customer'
     }
 },{
