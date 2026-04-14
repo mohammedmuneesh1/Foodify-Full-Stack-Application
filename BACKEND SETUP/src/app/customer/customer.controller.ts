@@ -6,6 +6,8 @@ import ResponseHandler from "../../utils/Response-Error-Handler/responseHandler"
 import CustomerModel from "./models/customer.schema";
 import { COMPARE_PASSWORD_UTILS, GENERATESALT_UTILS, HASHPASSWORD_UTILS } from "../../utils/bcrypt.utils";
 import { GENERATE_TOKEN_UTILS } from "../../utils/token.utils";
+import googleClient from "../../configs/googleAuth";
+import axios from "axios";
 
 export async function customerRegisterFn(req: Request, res: Response): Promise<Response> {
     const { fullName, email, password, mobile } = req.body;
@@ -47,14 +49,15 @@ export async function customerRegisterFn(req: Request, res: Response): Promise<R
     );
 
 
-    res.cookie('token', token, 
-      { 
-        secure:false,  //false for http and true for https,
-        sameSite: "strict", //
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days,
-        httpOnly: true,
-       }
-    );
+
+        res.cookie('token',
+           token,
+            {
+              httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
+               maxAge: 7 * 24 * 60 * 60 * 1000,
+              secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
+              });
+
 
     return ResponseHandler(
       res,
@@ -107,6 +110,17 @@ export async function customerLoginFn(req: Request, res: Response): Promise<Resp
         7
     );
 
+
+        res.cookie('token',
+           token,
+            {
+              httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
+               maxAge: 7 * 24 * 60 * 60 * 1000,
+              secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
+              });
+
+
+
     return ResponseHandler(
       res,
       200,
@@ -139,3 +153,80 @@ export async function CUSTOMER_SIGN_OUT_CONTROLLER(req:Request,res:Response):Pro
   res.clearCookie('token');
   return ResponseHandler(res, 200, true, null, "Sign out successful.");
 }
+
+
+
+
+/**
+ * @desc    GOOGLE SIGNIN 
+ * @route   GET /api/customers/google-signin
+ * @access  Private
+ * @returns  MY profile object
+ */
+
+export async function GOOGLE_LOGIN_CONTROLLER(req:Request,res:Response):Promise<Response>{
+    const { code } = req.body;
+
+  if (!code) {
+    return ResponseHandler(res, 400, false, null, 'Authorization code missing"');
+  }
+
+
+  // 1. Exchange auth code for tokens
+  const { tokens } = await googleClient.getToken(code);
+  googleClient.setCredentials(tokens);
+
+  // 2. Fetch Google user info
+  const googleUserRes = await axios.get(
+    "https://www.googleapis.com/oauth2/v2/userinfo",
+    {
+      headers: {
+        Authorization: `Bearer ${tokens.access_token}`,
+      },
+    }
+  );
+  const { email, name, picture: image , verified_email } = googleUserRes.data;
+
+  if (!email) {
+    return ResponseHandler(res, 400, false, null, "Google account has no email");
+  }
+
+  //    const {email,name,image} = req.body;
+
+  let isUserExist = await CustomerModel.findOne({ email });
+  if (!isUserExist) {
+    isUserExist = await CustomerModel.create({
+      fullName:name, 
+      email,
+      image:{
+        type:"Cloudinary",
+        url:image
+      },
+      isEmailVerified:verified_email
+      });
+  }
+  const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET as string | undefined;
+  if (!accessTokenSecret)  return ResponseHandler(res, 500, false, null, "ACCESS_TOKEN_SECRET is not configured.");
+    
+  
+  const token = GENERATE_TOKEN_UTILS(
+    {
+      id: isUserExist._id,
+      name: isUserExist.name,
+    },
+    accessTokenSecret,
+    7,
+  );
+
+  res.cookie('token',
+   token,
+    {
+      httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
+       maxAge: 7 * 24 * 60 * 60 * 1000,
+       sameSite:'strict',
+      secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
+      });
+  return ResponseHandler(res, 200, true, null, "Login successful.");  
+}
+
+

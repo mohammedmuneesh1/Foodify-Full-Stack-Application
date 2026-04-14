@@ -98,13 +98,13 @@ export async function userLoginFn(req: Request, res: Response): Promise<Response
     const deviceInfo = userDeviceTrackingFn(req);
     const hashedToken = hashTokenFn(token);
 
+
     await LoginHistoryModel.create({
        user: user._id,
        token: hashedToken,
        deviceInfo:deviceInfo,
        loginTime:new Date()
     });
-
 
     return ResponseHandler(res, 200, true, { token, user: { name: user.name, email: user.email, role: user.role } }, 'Login successful.');
   }
@@ -226,7 +226,6 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
   req: Request,
   res: Response
 ): Promise<Response> {
-
   const { email, role } = req.body;
 
   if (!email || !role) {
@@ -236,6 +235,7 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
   const roleConfig = {
   Customer: {
     model: CustomerModel,
+    
     idField: "customerId",
     notFoundMsg: "Customer not found with provided email.",
   },
@@ -251,8 +251,6 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
   },
 } as const;
 
-  
-
   const config = roleConfig[role as keyof typeof roleConfig];
 
   if (!config) {
@@ -260,7 +258,6 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
   }
 
   const { model, idField, notFoundMsg } = config;
-
   const user = await model.findOne({ email });
 
   if (!user) {
@@ -269,10 +266,22 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
 
   const otp = generateOTP();
 
+  console.log('otp',otp);
+
+
+    // dynamic field assignment
+  await ForgetPasswordModel.create({
+    [idField]: user._id,
+    email,
+    otp: await HASHPASSWORD_UTILS(otp.toString(), "10"),
+  });
+
+
   const sendEmail = await sendResetPasswordOTPEmailTemplateFn(
     email,
     otp.toString()
   );
+  console.log('sendEmail',sendEmail);
 
   if (!sendEmail?.success) {
     return ResponseHandler(
@@ -284,12 +293,7 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
     );
   }
 
-  // dynamic field assignment
-  await ForgetPasswordModel.create({
-    [idField]: user._id,
-    email,
-    otp: await HASHPASSWORD_UTILS(otp.toString(), "10"),
-  });
+
   return ResponseHandler(
     res,
     200,
@@ -305,13 +309,12 @@ export async function VERIFY_EMAIL_OTP_CONTROLLER(req: Request, res: Response) {
   if(!email) {
     return ResponseHandler(res, 200, false, null, "Email is required.");
   }
-
   if(!otp) {
     return ResponseHandler(res, 200, false, null, "OTP is required.");
   }
 
   const roleConfig = {
-  Customer: {
+  "Customer": {
     model: CustomerModel,
     idField: "customerId",
     notFoundMsg: "Customer not found with provided email.",
@@ -327,19 +330,15 @@ export async function VERIFY_EMAIL_OTP_CONTROLLER(req: Request, res: Response) {
     notFoundMsg: "Hotel Owner not found with provided email.",
   },
 } as const;
-
   const config = roleConfig[role as keyof typeof roleConfig];
-
   if (!config) {
     return ResponseHandler(res, 400, false, null, "Invalid role has been detected.");
   }
-
   const { model, idField, notFoundMsg } = config;
   const user = await model.findOne({ email });
   if (!user) {
     return ResponseHandler(res, 200, false, null, notFoundMsg);
   }
-
   const forgetpasswordDocument = await ForgetPasswordModel.findOne({
     [idField]: user._id,
     email,
@@ -358,6 +357,10 @@ export async function VERIFY_EMAIL_OTP_CONTROLLER(req: Request, res: Response) {
     return ResponseHandler(res, 200, false, null, "OTP does not match.");
   }
 
+  if(forgetpasswordDocument.expiredAt < new Date()){
+    return ResponseHandler(res, 200, false, null, "OTP has been expired. Please request a new one.");
+  }
+
   forgetpasswordDocument.isOtpVerified = true;
   await forgetpasswordDocument.save();
   return ResponseHandler(res, 200, true, null, "OTP has been verified.");
@@ -366,7 +369,6 @@ export async function VERIFY_EMAIL_OTP_CONTROLLER(req: Request, res: Response) {
 
 
 export async function UPDATE_PASSWORD_BY_EMAIL_CONTROLLER(req:Request,res:Response):Promise<Response> {
-
   const {email,role,password,confirmPassword} = req.body;
 
   if(!email) {
@@ -426,7 +428,6 @@ export async function UPDATE_PASSWORD_BY_EMAIL_CONTROLLER(req:Request,res:Respon
 
   user.password = hashPassword;
   await user.save();
-  
   return ResponseHandler(res,200,true,null,"Password has been updated.");
 }
 

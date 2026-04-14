@@ -1,12 +1,10 @@
-import React, { useState } from 'react'
+import  { useState } from 'react'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import { APP_LOGIN_API,  } from '../api/authRoutes';
+import { APP_GOOGLE_SIGNIN_API, APP_LOGIN_API,  } from '../api/authRoutes';
 import toast from 'react-hot-toast';
-
-
-
+import { useGoogleLogin } from '@react-oauth/google';
 
 interface formDataInterface{
   email:string;
@@ -51,33 +49,62 @@ const handleSignInFn = async ()=>{
   if(!formData?.email || !formData?.email?.trim() || !formData?.email?.includes("@")) return toast.error("Please enter valid email address.");
   if(!formData?.password || !formData?.password?.trim() || formData?.password?.length < 6 ) return toast.error("Please enter valid password.");
   setButtonLoading(true);
-  toast.loading("Login in...");
+  toast.loading("Signing in...");
   const result = await APP_LOGIN_API(role,formData);
   console.log('this is the result',result);
   toast.dismiss();
   setButtonLoading(false);
   if(result?.success){
+    setFormData({
+      email:'',
+      password:'',
+    });
+    
     toast.success(result?.response);
   }
   else{
     toast.error(result?.response);
   }
-
-    //   fullName:'',
-    // email:'',
-    // mobile:'',
-    // password:'',
-  
 }
+
+
+
+//======================= GOOGLE SIGN IN ===============================
+const googleLogin = useGoogleLogin({
+  flow: "auth-code", // IMPORTANT
+  onSuccess: async (response) => {
+    // response.code ← THIS is what you send to backend
+    const res =  await APP_GOOGLE_SIGNIN_API(role,{code:response.code});
+    console.log('this is the response',res);
+
+
+    if(res?.success){
+        // if(res?.data?.data?.isAdmin){
+        //     navigate("/admin");
+        // }
+        // else{
+        // navigate("/user/dashboard/bookings");
+        // }
+        return toast.success("Welcome Back");
+    }
+    else{
+        toast.error(res?.data?.response ?? "Technical Issue in login. Please try again later.");
+    }
+  },
+
+  onError: () => {
+    console.error("Google login failed");
+  },
+});
+//======================= GOOGLE SIGN IN ===============================
 
 
   return (
     <div className='min-h-screen w-full flex items-center justify-center p-4'
     style={{backgroundColor:"red"}}>
-
-        {/*BORDER CONTAINER START HERE */}
+        {/* BORDER CONTAINER START HERE */}
         <div 
-        className={` bg-white rounded-xl shadow-xl w-full max-w-md p-8 border-[1px] border-[${borderColor}] `}>
+        className={` bg-white rounded-xl shadow-xl w-full max-w-md p-4 md:p-8 border-[1px] border-[${borderColor}] `}>
             <h1 
             className='text-2xl md:text-3xl font-bold mb-2 text-primary'>
                 Foodify
@@ -163,7 +190,7 @@ const handleSignInFn = async ()=>{
 
 <div 
 
- className="flex items-center mb-2 gap-3 w-full max-w-full">
+ className="flex  items-center mb-2 gap-3 w-full max-w-full">
 
   {["Customer", "Delivery Partner","Hotel Owner"].map(
     //eslint-disable-next-line
@@ -173,7 +200,7 @@ const handleSignInFn = async ()=>{
       type="button"
     //   onClick={()=>setRole(role)}
       onClick={()=>setRole(option)}
-      className={`fex-1 border rounded-md px-3
+      className={`fex-1 border rounded-md px-2 md:px-3
        py-2 text-center font-medium transition-colors 
        text-[12px] sm:text-sm whitespace-nowrap
        ${role === option ? `bg-primary text-white` : `bg-white text-primary`}
@@ -214,7 +241,9 @@ const handleSignInFn = async ()=>{
   </button>
 
 
-  <button className='font-semibold w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-300 border-gray-200 hover:bg-gray-200 '>
+  <button
+  onClick={googleLogin}
+  className='font-semibold w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-300 border-gray-200 hover:bg-gray-200 '>
     <FcGoogle size={20}/>
     <span>Signup With Google</span>
   </button>

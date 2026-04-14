@@ -11,7 +11,8 @@ const authMiddleware = async (
   next: NextFunction
 ): Promise<any> => {
     try{
-        const token = req.headers.authorization;
+        // const token = req.headers.authorization;
+        const token = req.cookies.token;
         
         if(!token || !token.startsWith('Bearer')){
             return res.status(401).json({success:false,data:null,response:'Unauthorized access'});

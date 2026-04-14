@@ -1,1 +1,51 @@
 
+import nodemailer from "nodemailer";
+
+
+
+
+
+const {
+  SMTP_HOST,
+  SMTP_PASS,
+  SMTP_USER,
+  SMTP_PORT,
+  SENDER_EMAIL,
+  
+} = process.env;
+
+
+
+export const mailTransporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: Number(SMTP_PORT),
+//   secure: false, // true only for 465
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS,
+  },
+});
+
+
+mailTransporter.verify((error: unknown, success: unknown) => {
+  if (error) {
+    console.error("❌ Mail server error:", error);
+  } else {
+    console.info("✅ Mail server is ready");
+  }
+});
+
+
+
+
+
+export const sendEmail = async({to,subject,body}:any)=>{
+    const resposne = await mailTransporter.sendMail({
+        from: SENDER_EMAIL,
+        to,
+        subject,
+        html:body,
+      });
+}
+
+

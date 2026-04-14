@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { SEND_EMAIL_OTP_API, UPDATE_PASSWORD_FOR_FORGET_PASSWORD_API, VERIFY_FORGET_PASSWORD_OTP_API } from '../api/authRoutes';
 
 type Step = 'email' | 'otp'| 'reset' | 'success';
 
@@ -44,24 +45,11 @@ const ForgotPasswordPage = () => {
     return () => clearInterval(interval);
   }, [step]);
 
-  // ─── Mock API calls — replace with your real APP_FORGOT_PASSWORD_API etc. ──
-  const sendOtpAPI = async (email: string) => {
-    await new Promise((r) => setTimeout(r, 1500));
-    if (!email.includes('@')) throw new Error('Invalid email');
-    return { success: true, response: 'OTP sent successfully' };
-  };
-
-  const verifyOtpAPI = async (_email: string, otpCode: string) => {
-    await new Promise((r) => setTimeout(r, 1500));
-    if (otpCode !== '123456') throw new Error('Invalid OTP. Try 123456 for demo.');
-    return { success: true, response: 'OTP verified' };
-  };
 
 
 
 
-
-  // ─────────────────────────────────────────────────────────────────────────────
+  //==================================== ⚠️⚠️(STEP-1)⚠️⚠️ EMAIL INPUT AND SEND OTP API CALL ================================
 
   const handleSendOtp = async () => {
     setError('');
@@ -71,7 +59,8 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const result = await sendOtpAPI(email);
+      // const result = await sendOtpAPI(email);
+      const result = await SEND_EMAIL_OTP_API({ email, role });
       if (result?.success) {
         setStep('otp');
       } else {
@@ -83,6 +72,19 @@ const ForgotPasswordPage = () => {
       setLoading(false);
     }
   };
+  //==================================== ⚠️⚠️(STEP-2)⚠️⚠️ EMAIL INPUT AND SEND OTP API CALL ================================
+
+
+
+
+
+
+
+
+
+
+
+
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
@@ -109,8 +111,14 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const result = await verifyOtpAPI(email, otpCode);
+      const result = await VERIFY_FORGET_PASSWORD_OTP_API({
+        email,
+        otp:otpCode,
+        role
+        });
       if (result?.success) {
+        setOtp(['', '', '', '', '', '']);
+        setFormData({password:'',confirmPassword:''});
         setStep('reset');
       } else {
         setError('Invalid OTP. Please try again.');
@@ -129,15 +137,40 @@ const ForgotPasswordPage = () => {
     if(!formData?.password || !formData?.password?.trim() || formData?.password?.length < 6 ) return toast.error("Please enter valid password.");
     if(!formData?.confirmPassword || !formData?.password?.trim() ) return toast.error("Please enter valid password.");
     if(formData?.password !== formData?.confirmPassword) return toast.error("Password and confirm password should be same.");
-    return setStep("success");
+
+    const result = await UPDATE_PASSWORD_FOR_FORGET_PASSWORD_API({
+      password:formData?.password,
+      confirmPassword:formData?.confirmPassword,
+      email,
+      role
+    });
+
+    if(result?.success){
+      setStep('success');
+      setTimeout(() => {
+        navigate('/signin',{
+          replace:true
+        });
+      }, 6000);
+      }
+    else{
+       return toast.error(result?.response);
+      }
   }
 
+
+  // --------------   RESEND OTP FUNCTION --------------
   const handleResend = async () => {
     setOtp(['', '', '', '', '', '']);
     setError('');
     setLoading(true);
     try {
-      await sendOtpAPI(email);
+     const result = await SEND_EMAIL_OTP_API({ email, role });
+     if (result?.success) {
+        setStep('otp');
+      } else {
+        setError('Failed to send OTP. Please try again.');
+      }
       setStep('otp'); // re-triggers timer useEffect
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to resend OTP.');
@@ -145,6 +178,8 @@ const ForgotPasswordPage = () => {
       setLoading(false);
     }
   };
+  // --------------   RESEND OTP FUNCTION --------------
+
 
   const steps = ['Email', 'Verify OTP', 'Reset',"Success"];
   const stepIndex = step === 'email' ? 0 : step === 'otp' ? 1 : step === 'reset' ? 2 : 3;

@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import { APP_REGISTRATION_API } from '../api/authRoutes';
+import { APP_GOOGLE_SIGNIN_API, APP_REGISTRATION_API } from '../api/authRoutes';
 import toast from 'react-hot-toast';
+import { useGoogleLogin } from '@react-oauth/google';
 
 
 
@@ -84,6 +85,38 @@ const handleSignUpFn = async ()=>{
     // password:'',
   
 }
+
+
+
+
+//======================= GOOGLE SIGN IN ===============================
+const googleLogin = useGoogleLogin({
+  flow: "auth-code", // IMPORTANT
+  onSuccess: async (response) => {
+    // response.code ← THIS is what you send to backend
+    const res =  await APP_GOOGLE_SIGNIN_API(role,{code:response.code});
+
+    if(res?.success){
+        // if(res?.data?.data?.isAdmin){
+        //     navigate("/admin");
+        // }
+        // else{
+        // navigate("/user/dashboard/bookings");
+        // }
+        return toast.success("Welcome Back");
+    }
+    
+    else{
+        toast.error(res?.data?.response ?? "Technical Issue in login. Please try again later.");
+    }
+  },
+
+  onError: () => {
+    console.error("Google login failed");
+  },
+});
+//======================= GOOGLE SIGN IN ===============================
+
 
 
   return (
@@ -229,7 +262,9 @@ const handleSignUpFn = async ()=>{
   </button>
 
 
-  <button className='font-semibold w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-300 border-gray-200 hover:bg-gray-200 '>
+  <button
+  onClick={googleLogin}
+  className='font-semibold w-full mt-4 flex items-center justify-center gap-2 border rounded-lg px-4 py-2 transition duration-300 border-gray-200 hover:bg-gray-200 '>
     <FcGoogle size={20}/>
     <span>Signup With Google</span>
   </button>

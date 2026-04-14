@@ -18,6 +18,7 @@ import { router as AuthRoute } from "./app/authentication/route";
 import { router as CustomerRoute } from "./app/customer/customer.routes";
 import { router as DeliveryPartnerRoutes } from "./app/delivery-partner/deliveryPartner.routes";
 import {router as HotelOwners} from "./app/hotel-owner/hotelOwner.routes";
+import { router as CommonRoutes } from "./app/common/common.route";
 import connectDBFn from "./configs/dbConnectFn";
 import morganMiddleware from "./middleware/builtInMiddleware/morganMiddleware";
 
@@ -40,6 +41,7 @@ app.use('/api/auth', AuthRoute);
 app.use('/api/customers', CustomerRoute);
 app.use('/api/deliverypartners', DeliveryPartnerRoutes);
 app.use('/api/hotelowners', HotelOwners);
+app.use('/api/common',CommonRoutes);
 
 
 export interface AuthUserInterface{

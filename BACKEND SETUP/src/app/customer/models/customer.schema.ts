@@ -12,11 +12,30 @@ const CustomerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        // required: true,
+    },
+    image:{
+        type:{
+            type:String,
+            enum:["Google","Cloudinary"],    
+            required:true,
+        },
+        url:{
+            type:String,
+            required:true
+        }
+    },
+    cloudinaryKey:{
+        type: String,
+    },
+    
+    isEmailVerified:{
+        type: Boolean,
+        default: true,
     },
     mobile:{
         type:String,
-        required:true
+        // required:true
     },
     role:{
         type:String,

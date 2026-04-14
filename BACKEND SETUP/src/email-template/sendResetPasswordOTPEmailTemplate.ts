@@ -1,15 +1,9 @@
 
 import nodemailer from "nodemailer";
+import { mailTransporter } from "../utils/mailTransport";
 
 export const sendResetPasswordOTPEmailTemplateFn = async (email: string, otp: string) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // or use SMTP config
-      auth: {
-        user: process.env.NODEMAILER_EMAIL,
-        pass: process.env.NODEMAILER_PASSWORD,
-      },
-    });
 
     const mailOptions = {
       from: `"Foodly App Support" <${process.env.NODEMAILER_EMAIL}>`,
@@ -45,7 +39,7 @@ export const sendResetPasswordOTPEmailTemplateFn = async (email: string, otp: st
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    await mailTransporter.sendMail(mailOptions);
 
     return {
       success: true,
