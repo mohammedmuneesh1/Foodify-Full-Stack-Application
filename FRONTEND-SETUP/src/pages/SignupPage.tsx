@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import { APP_GOOGLE_SIGNIN_API, APP_REGISTRATION_API } from '../api/authRoutes';
+import { APP_GOOGLE_SIGNIN_API, APP_REGISTRATION_API } from '../api/authApi';
 import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useDispatch } from 'react-redux';
+import { setuserData } from '../redux/reducers/userSlice';
 
 
 
@@ -30,6 +32,8 @@ const SignupPage = () => {
     mobile:'',
     password:'',
    });
+
+   const dispatch = useDispatch();
 
    
     const navigate = useNavigate();
@@ -67,6 +71,7 @@ const handleSignUpFn = async ()=>{
   toast.dismiss();
   setButtonLoading(false);
   if(result?.success){
+    dispatch(setuserData(result?.data));
     toast.success(result?.response);
     return setFormData({
       fullName:'',
@@ -103,7 +108,11 @@ const googleLogin = useGoogleLogin({
         // else{
         // navigate("/user/dashboard/bookings");
         // }
-        return toast.success("Welcome Back");
+         toast.success("Welcome Back");
+        dispatch(setuserData(res?.data));
+          return setTimeout(()=>{
+            navigate('/');
+        },2000);
     }
     
     else{

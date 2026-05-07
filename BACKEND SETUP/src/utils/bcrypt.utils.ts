@@ -2,11 +2,10 @@ import bcrypt from "bcrypt";
 
 export const HASHPASSWORD_UTILS = async (password:string,salt:string) => {
     return await bcrypt.hash(password,Number(salt));
-
 }
 
 export const COMPARE_PASSWORD_UTILS = async (password:string,hashedPassword:string) => {
-    return await bcrypt.compare(password,hashedPassword);
+    return await bcrypt.compare(password,hashedPassword ?? "");
 }
 
 export const GENERATESALT_UTILS = async (round:number) => {

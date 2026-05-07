@@ -10,14 +10,21 @@ export async function GET_USER__DETAILS_BY_TOKEN(req: Request, res: Response): P
     if(!customerId || !role) return ResponseHandler(res, 404, false, null, "Customer not found.");
     let data;
     if (role === "Customer") {
-    data = await GET_CUSTOMER_DETAILS_BY_ID(customerId, "password");
-  } else if (role === "DeliveryPartner") {
-    data = await GET_DELIVERY_PARTNER_DETAILS_BY_ID(customerId, "password");
-  } else if (role === "HotelOwner") {
-    data = await GET_HOTEL_OWNER_DETAILS_BY_ID(customerId, "password");
+    data = await GET_CUSTOMER_DETAILS_BY_ID(customerId, "-password");
+  } else if (role === "Delivery Partner") {
+    data = await GET_DELIVERY_PARTNER_DETAILS_BY_ID(customerId, "-password");
+  } else if (role === "Hotel Owner") {
+    data = await GET_HOTEL_OWNER_DETAILS_BY_ID(customerId, "-password");
   } else {
     return ResponseHandler(res,200,true,null, "Invalid role.");
   }
-    return ResponseHandler(res,200,true,data, "Customer found successfully.");
+  if(!data) return ResponseHandler(res, 404, false, null, "Customer not found.");
+
+  return ResponseHandler(res,200,true,{
+         fullName: data?.fullName ?? "",
+          email: data?.email ?? "",
+          mobile: data?.mobile ?? "",
+          role: data?.role,
+    }, "Customer found successfully.");
 }
 

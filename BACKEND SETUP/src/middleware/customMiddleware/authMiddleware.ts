@@ -12,21 +12,24 @@ const authMiddleware = async (
 ): Promise<any> => {
     try{
         // const token = req.headers.authorization;
-        const token = req.cookies.token;
+        const token = req?.cookies?.token;
         
-        if(!token || !token.startsWith('Bearer')){
-            return res.status(401).json({success:false,data:null,response:'Unauthorized access'});
+        
+        if(!token){
+        // if(!token || !token.startsWith('Bearer')){
+          return res.status(401).json({success:false,data:null,response:'Unauthorized access'});
         }
-        const jwtToken = token.split(' ')[1];
 
-        if( !jwtToken){
-            return res.status(401).json({success:false,data:null,response:'Unauthorized access'});
-        }
+        // const jwtToken = token.split(' ')[1];
+
+        // if( !jwtToken){
+        //     return res.status(401).json({success:false,data:null,response:'Unauthorized access'});
+        // }
         // console.log('rquest reached here',process.env.ACCESS_TOKEN_SECRET as string);
 
         const decoded = jwt
-        .verify(jwtToken,process.env.ACCESS_TOKEN_SECRET as string) as AuthUserInterface;
-        
+        .verify(token,process.env.ACCESS_TOKEN_SECRET as string) as AuthUserInterface;
+
         if(!decoded.uId) return res.status(401).json({
             success:false,
             data:null,

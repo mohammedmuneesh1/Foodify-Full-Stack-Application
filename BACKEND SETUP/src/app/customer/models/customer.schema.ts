@@ -1,5 +1,33 @@
 import mongoose from "mongoose";
 
+
+
+const imageSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ["Google", "Cloudinary"],
+    required: true
+  },
+  url: {
+    type: String,
+    required: true
+  },
+  publicId:{
+    type:String,
+  },
+  mimeType:{
+    type:String,
+  },
+  mediaType:{
+    type:String,
+  },
+  dimension:{
+    width: Number,
+    height: Number,
+  },
+}, { _id: false });
+
+
 const CustomerSchema = new mongoose.Schema({
     fullName:{
         type: String,
@@ -14,17 +42,10 @@ const CustomerSchema = new mongoose.Schema({
         type: String,
         // required: true,
     },
-    image:{
-        type:{
-            type:String,
-            enum:["Google","Cloudinary"],    
-            required:true,
-        },
-        url:{
-            type:String,
-            required:true
-        }
-    },
+image: {
+    type:imageSchema,
+    required:false,
+},
     cloudinaryKey:{
         type: String,
     },

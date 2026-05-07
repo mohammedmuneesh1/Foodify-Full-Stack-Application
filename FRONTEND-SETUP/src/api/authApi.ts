@@ -102,7 +102,15 @@ export async function UPDATE_PASSWORD_FOR_FORGET_PASSWORD_API(obj:object){
     } catch (error) {
         return axiosErrorHandler(error);
     }
-    
+}
+
+export async function LOGOUT_API(){
+    try {
+        const res = await axiosInstance.post('/api/auth/logout');
+        return res?.data;
+    } catch (error) {
+        return axiosErrorHandler(error);
+    }
 }
 
 

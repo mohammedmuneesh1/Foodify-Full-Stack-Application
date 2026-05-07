@@ -1,0 +1,53 @@
+
+//streamifier is a small Node.js library that lets you convert a Buffer (or string) into a Readable stream.
+//Cloudinary’s upload_stream() method expects a stream of file data — not a Buffer or file path.
+//But when you use middleware like multer (especially multer.memoryStorage()), you receive uploaded files in memory as buffers, like:
+
+
+
+
+🔧 streamifier = bridge
+
+This line:
+streamifier.createReadStream(file.buffer).pipe(uploadStream);
+
+“Take this raw buffer and pretend it’s a stream, then send it to Cloudinary”
+
+file.buffer (binary data in RAM)
+        ↓
+streamifier
+        ↓
+Readable Stream
+        ↓
+Cloudinary upload_stream()
+        ↓
+Uploaded file
+
+
+
+🔥 Without streamifier?
+
+You’d need to:
+
+save file to disk
+then upload using path
+
+
+Example (bad approach):
+
+fs.writeFileSync("temp.jpg", file.buffer)
+cloudinary.uploader.upload("temp.jpg")
+
+👉 Problems:
+
+disk I/O
+slower
+cleanup needed
+messy
+
+
+“Buffer ≠ Stream → convert it”
+
+
+Purpose:
+👉 Convert buffer → readable stream

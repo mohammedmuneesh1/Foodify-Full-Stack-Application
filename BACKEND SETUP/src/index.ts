@@ -19,9 +19,11 @@ import { router as CustomerRoute } from "./app/customer/customer.routes";
 import { router as DeliveryPartnerRoutes } from "./app/delivery-partner/deliveryPartner.routes";
 import {router as HotelOwners} from "./app/hotel-owner/hotelOwner.routes";
 import { router as CommonRoutes } from "./app/common/common.route";
+import { router as ShopRoutes } from "./app/shop/routes/shop.router";
+
 import connectDBFn from "./configs/dbConnectFn";
 import morganMiddleware from "./middleware/builtInMiddleware/morganMiddleware";
-
+import cookieParser from 'cookie-parser';
 // Initialize Express app
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +33,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 app.set('trust proxy', 1);                  // Trust proxy (should stay first)
 app.use(corsConfig);                        // 1) Set CORS headers early
 app.use(morganMiddleware);                  // 2) Log requests (before body parsing)
+app.use(cookieParser());                    //⚠️⚠️⚠️ very imp to get token from cookies (req.cookies.token)
 app.use(express.json({ limit: "30mb" }));   // 3) Parse JSON bodies
 app.use(hpp());                             // 4) Sanitize query strings
 app.use(rateLimiter);                       // 5) Prevent abuse via rate limiting
@@ -42,6 +45,7 @@ app.use('/api/customers', CustomerRoute);
 app.use('/api/deliverypartners', DeliveryPartnerRoutes);
 app.use('/api/hotelowners', HotelOwners);
 app.use('/api/common',CommonRoutes);
+app.use('/api/shops',ShopRoutes);
 
 
 export interface AuthUserInterface{

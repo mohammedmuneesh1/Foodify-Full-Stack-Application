@@ -10,3 +10,12 @@ export const USER_DETAILS_FETCH_API = async ()=>{
         return axiosErrorHandler(error);
     }
 }
+
+
+// const { data, isLoading, error } = useQuery({
+//   queryKey: ["userDetails"],
+//   queryFn: USER_DETAILS_FETCH_API,
+//   staleTime: 1000 * 60 * 5, // 5 minutes
+//   retry: 1,
+// });
+

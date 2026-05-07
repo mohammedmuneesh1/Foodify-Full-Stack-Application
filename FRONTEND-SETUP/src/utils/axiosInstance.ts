@@ -5,7 +5,6 @@ import  { AxiosError } from "axios";
 const axiosInstance = axios.create({
 //   baseURL:import.meta.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8080",
   baseURL:"http://localhost:8080",
-
   timeout: 10000,
   withCredentials: true, // important if using cookies
   headers: {
@@ -45,10 +44,10 @@ axiosInstance.interceptors.response.use(
 
       switch (status) {
         case 401:
-          console.error("Unauthorized - redirect to login");
+          // console.error("Unauthorized - redirect to login");
 
           // Optional: redirect
-          // window.location.href = "/login";
+          // window.location.href = "/signin";
 
           break;
 

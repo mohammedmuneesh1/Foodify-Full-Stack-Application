@@ -434,8 +434,10 @@ export async function UPDATE_PASSWORD_BY_EMAIL_CONTROLLER(req:Request,res:Respon
 
 
 
-
-
+export async function LOGOUT_CONTROLLER(req:Request,res:Response):Promise<Response> {
+  res.clearCookie('token');
+  return ResponseHandler(res, 200, true, null, "Sign out successful.");
+}
 
 
 

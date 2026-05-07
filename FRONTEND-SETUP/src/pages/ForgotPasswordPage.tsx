@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { SEND_EMAIL_OTP_API, UPDATE_PASSWORD_FOR_FORGET_PASSWORD_API, VERIFY_FORGET_PASSWORD_OTP_API } from '../api/authRoutes';
+import { SEND_EMAIL_OTP_API, UPDATE_PASSWORD_FOR_FORGET_PASSWORD_API, VERIFY_FORGET_PASSWORD_OTP_API } from '../api/authApi';
 
 type Step = 'email' | 'otp'| 'reset' | 'success';
 

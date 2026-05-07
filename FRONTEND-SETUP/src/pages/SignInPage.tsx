@@ -2,9 +2,11 @@ import  { useState } from 'react'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import { APP_GOOGLE_SIGNIN_API, APP_LOGIN_API,  } from '../api/authRoutes';
+import { APP_GOOGLE_SIGNIN_API, APP_LOGIN_API,  } from '../api/authApi';
 import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useDispatch } from 'react-redux';
+import { setuserData } from '../redux/reducers/userSlice';
 
 interface formDataInterface{
   email:string;
@@ -24,7 +26,7 @@ const SignInPage = () => {
     password:'',
    });
 
-   
+   const dispatch = useDispatch();
     const navigate = useNavigate();
     // const [selectedPage,setSelectedPage] = useState("false");
     const [showPassword,setShowPassword] = useState<boolean>(false);
@@ -55,6 +57,7 @@ const handleSignInFn = async ()=>{
   toast.dismiss();
   setButtonLoading(false);
   if(result?.success){
+    dispatch(setuserData(result?.data));
     setFormData({
       email:'',
       password:'',
@@ -75,7 +78,7 @@ const googleLogin = useGoogleLogin({
   onSuccess: async (response) => {
     // response.code ← THIS is what you send to backend
     const res =  await APP_GOOGLE_SIGNIN_API(role,{code:response.code});
-    console.log('this is the response',res);
+    
 
 
     if(res?.success){
@@ -85,7 +88,11 @@ const googleLogin = useGoogleLogin({
         // else{
         // navigate("/user/dashboard/bookings");
         // }
-        return toast.success("Welcome Back");
+        toast.success("Welcome Back");
+        dispatch(setuserData(res?.data));
+        return setTimeout(()=>{
+            navigate('/');
+        },2000);
     }
     else{
         toast.error(res?.data?.response ?? "Technical Issue in login. Please try again later.");

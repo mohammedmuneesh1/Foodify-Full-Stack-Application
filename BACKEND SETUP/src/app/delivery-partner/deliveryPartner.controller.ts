@@ -53,7 +53,7 @@ export async function DELIVERY_PARTNER_REGISTRATION(req: Request, res: Response)
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
                maxAge: 7 * 24 * 60 * 60 * 1000,
-               sameSite: "strict",
+               sameSite: 'lax',    // 👈 change strict → lax for development
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
 
@@ -89,6 +89,14 @@ export async function DELIVERY_PARTNER_LOGIN(req: Request, res: Response): Promi
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
     }
 
+
+
+            //CHECK IF PASSWORD IS SET 
+            if(!deliveryPartner.password){
+              return ResponseHandler(res, 401, false, null, "This account uses Google sign-in. Use Google or set a password via “Forgot Password”.");
+            }
+
+
     const isMatch = await COMPARE_PASSWORD_UTILS( String(password), deliveryPartner.password)
     if (!isMatch) {
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
@@ -112,7 +120,7 @@ export async function DELIVERY_PARTNER_LOGIN(req: Request, res: Response): Promi
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
                maxAge: 7 * 24 * 60 * 60 * 1000,
-               sameSite: "strict",
+               sameSite: "lax",
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
 
@@ -121,13 +129,10 @@ export async function DELIVERY_PARTNER_LOGIN(req: Request, res: Response): Promi
       200,
       true,
       {
-        token,
-        deliveryPartner: {
-          fullName: deliveryPartner.fullName,
-          email: deliveryPartner.email,
-          mobile: deliveryPartner.mobile,
-          role: deliveryPartner.role,
-        },
+                 fullName: deliveryPartner.fullName ?? "",
+          email: deliveryPartner.email ?? "" ,
+          mobile: deliveryPartner.mobile ?? "",
+          role: deliveryPartner.role ?? "",
       },
       "Login successful."
     );
@@ -184,7 +189,7 @@ export async function DELIVERY_PARTNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:R
       fullName:name, 
       email,
       image:{
-        type:"Cloudinary",
+        type:"Google",
         url:image
       },
       isEmailVerified:verified_email
@@ -194,10 +199,9 @@ export async function DELIVERY_PARTNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:R
   if (!accessTokenSecret)  return ResponseHandler(res, 500, false, null, "ACCESS_TOKEN_SECRET is not configured.");
 
   const token = GENERATE_TOKEN_UTILS(
-    {
-      id: isUserExist._id,
-      name: isUserExist.name,
-    },
+         { uId: isUserExist._id,
+          role: isUserExist.role 
+        },
     accessTokenSecret,
     7,
   );
@@ -207,9 +211,16 @@ export async function DELIVERY_PARTNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:R
     {
       httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
        maxAge: 7 * 24 * 60 * 60 * 1000,
-       sameSite:'strict',
+       sameSite: 'lax',    // 👈 change strict → lax for development
       secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
       });
 
-  return ResponseHandler(res, 200, true, null, "Login successful.");  
+  return ResponseHandler(res, 200, true, 
+       {
+                 fullName: isUserExist.fullName ?? "",
+          email: isUserExist.email ?? "" ,
+          mobile: isUserExist.mobile ?? "",
+          role: isUserExist.role ?? "",
+      },
+     "Login successful.");  
 }

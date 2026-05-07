@@ -55,7 +55,7 @@ export async function HOTEL_OWNER_REGISTRATION(req: Request, res: Response): Pro
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
                maxAge: 7 * 24 * 60 * 60 * 1000,
-               sameSite: "strict",
+               sameSite: 'lax',    // 👈 change strict → lax for development
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
 
@@ -93,6 +93,11 @@ export async function HOTEL_OWNER_LOGIN_CONTROLLER(req: Request, res: Response):
     if (!hotelOwner) {
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
     }
+        //CHECK IF PASSWORD IS SET 
+        if(!hotelOwner.password){
+          return ResponseHandler(res, 401, false, null, "This account uses Google sign-in. Use Google or set a password via “Forgot Password”.");
+        }
+
     const isMatch = await COMPARE_PASSWORD_UTILS( String(password), hotelOwner.password)
     if (!isMatch) {
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
@@ -116,7 +121,7 @@ export async function HOTEL_OWNER_LOGIN_CONTROLLER(req: Request, res: Response):
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
                maxAge: 7 * 24 * 60 * 60 * 1000,
-               sameSite: "strict",
+               sameSite: "lax",
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
 
@@ -128,13 +133,10 @@ export async function HOTEL_OWNER_LOGIN_CONTROLLER(req: Request, res: Response):
       200,
       true,
       {
-        token,
-        hotelOwner: {
           fullName: hotelOwner.fullName,
           email: hotelOwner.email,
           mobile: hotelOwner.mobile,
           role: hotelOwner.role,
-        },
       },
       "Login successful."
     );
@@ -187,7 +189,7 @@ export async function HOTEL_OWNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:Respon
       fullName:name, 
       email,
       image:{
-        type:"Cloudinary",
+        type:"Google",
         url:image
       },
       isEmailVerified:verified_email
@@ -197,10 +199,10 @@ export async function HOTEL_OWNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:Respon
   if (!accessTokenSecret)  return ResponseHandler(res, 500, false, null, "ACCESS_TOKEN_SECRET is not configured.");
     
   const token = GENERATE_TOKEN_UTILS(
-    {
-      id: isUserExist._id,
-      name: isUserExist.name,
-    },
+            {
+               uId: isUserExist._id,
+          role: isUserExist.role 
+        },
     accessTokenSecret,
     7,
   );
@@ -210,8 +212,13 @@ export async function HOTEL_OWNER_GOOGLE_LOGIN_CONTROLLER(req:Request,res:Respon
     {
       httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
        maxAge: 7 * 24 * 60 * 60 * 1000,
-       sameSite:'strict',
+       sameSite: 'lax',    // 👈 change strict → lax for development
       secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
       });
-  return ResponseHandler(res, 200, true, null, "Login successful.");  
+  return ResponseHandler(res, 200, true, {
+    fullName: isUserExist.fullName,
+          email: isUserExist.email,
+          mobile: isUserExist.mobile,
+          role: isUserExist.role,
+  }, "Login successful.");  
 }

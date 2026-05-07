@@ -54,6 +54,7 @@ export async function customerRegisterFn(req: Request, res: Response): Promise<R
            token,
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
+              sameSite: "lax",
                maxAge: 7 * 24 * 60 * 60 * 1000,
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
@@ -93,6 +94,14 @@ export async function customerLoginFn(req: Request, res: Response): Promise<Resp
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
     }
 
+    
+    //CHECK IF PASSWORD IS SET 
+    if(!customer.password){
+      return ResponseHandler(res, 401, false, null, "This account uses Google sign-in. Use Google or set a password via “Forgot Password”.");
+    }
+
+
+
     const isMatch = await COMPARE_PASSWORD_UTILS( String(password), customer.password)
     if (!isMatch) {
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");
@@ -110,12 +119,13 @@ export async function customerLoginFn(req: Request, res: Response): Promise<Resp
         7
     );
 
-
+    
         res.cookie('token',
            token,
             {
               httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
                maxAge: 7 * 24 * 60 * 60 * 1000,
+               sameSite: 'lax',    // 👈 change strict → lax for development
               secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
               });
 
@@ -126,13 +136,10 @@ export async function customerLoginFn(req: Request, res: Response): Promise<Resp
       200,
       true,
       {
-        token,
-        customer: {
           fullName: customer.fullName,
           email: customer.email,
           mobile: customer.mobile,
           role: customer.role,
-        },
       },
       "Login successful."
     );
@@ -199,7 +206,7 @@ export async function GOOGLE_LOGIN_CONTROLLER(req:Request,res:Response):Promise<
       fullName:name, 
       email,
       image:{
-        type:"Cloudinary",
+        type:"Google",
         url:image
       },
       isEmailVerified:verified_email
@@ -211,8 +218,8 @@ export async function GOOGLE_LOGIN_CONTROLLER(req:Request,res:Response):Promise<
   
   const token = GENERATE_TOKEN_UTILS(
     {
-      id: isUserExist._id,
-      name: isUserExist.name,
+      uId: isUserExist._id,
+      role: isUserExist.role,
     },
     accessTokenSecret,
     7,
@@ -223,10 +230,17 @@ export async function GOOGLE_LOGIN_CONTROLLER(req:Request,res:Response):Promise<
     {
       httpOnly: process.env.COOKIE_HTTP_STATUS === 'true',
        maxAge: 7 * 24 * 60 * 60 * 1000,
-       sameSite:'strict',
+      //  sameSite:'strict',
+    sameSite: 'lax',    // 👈 change strict → lax for development
       secure: process.env.COOKIE_HTTP_SECURE_STATUS === 'true',
       });
-  return ResponseHandler(res, 200, true, null, "Login successful.");  
+  return ResponseHandler(res, 200, true, 
+          {
+          fullName: isUserExist.fullName ?? "",
+          email: isUserExist.email,
+          mobile: isUserExist.mobile ?? "",
+          role: isUserExist.role,
+      }, "Login has been successful.");  
 }
 
 
