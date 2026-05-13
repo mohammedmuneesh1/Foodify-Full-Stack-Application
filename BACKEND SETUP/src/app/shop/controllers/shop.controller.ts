@@ -5,6 +5,7 @@ import { buildImageFromCloudinarySingle } from "../services/shop.fn";
 import { generateUniqueSlug } from "../services/shop.dbFn";
 import shopModel from "../model/shop.schema";
 import ItemModel from "../model/item.schema";
+import logger from "../../../libs/winstonLogger";
 
 
 
@@ -105,7 +106,6 @@ export async function GET_ALL_SHOPS(req: Request, res: Response): Promise<any> {
   if (req.query.isActive !== undefined) filter.isActive = req.query.isActive === "true";
   if (req.query.isOpen !== undefined) filter.isOpen = req.query.isOpen === "true";
 
-  console.log("filter", filter);
  
   const [shops, total] = await Promise.all([
     shopModel
@@ -133,24 +133,28 @@ export async function GET_ALL_SHOPS(req: Request, res: Response): Promise<any> {
  * @returns  return shopId document  ⚠️
  */
 export async function GET_SHOP_BY_ID(req: Request, res: Response): Promise<any> {
-
   const { shopId } = req.params;
-
   if (!isValidObjectId(shopId)){
       return ResponseHandler(res, 400, false, null, "Invalid shop id.");
     }
- 
   const shop = await shopModel
     .findOne({ _id: shopId, isDeleted: false })
-    .populate({ path: "owner", select: "name email" })
-
+    .populate({ path: "owner", select: "name email" });
   if (!shop) return ResponseHandler(res, 404, false, null, "Shop not found.");
+
   const items = await ItemModel.find({
   shop: shopId,
   isDeleted: false,
   isAvailable: true,
 });
-return ResponseHandler(res, 200, true, { ...shop.toObject(), items }, "Shop fetched successfully.");
+
+// return ResponseHandler(res, 200, true, { shop:...shop.toObject(), items }, "Shop fetched successfully.");
+return ResponseHandler(res, 200, true, { 
+  shop,
+  items,
+  itemsCount:items.length,
+
+ }, "Shop fetched successfully.");
 }
 /**
  * @desc     GET SHOP data by slug
@@ -171,7 +175,10 @@ export async function GET_SHOP_BY_SLUG(req: Request, res: Response): Promise<any
   isAvailable: true,
 });
   if (!shop) return ResponseHandler(res, 404, false, null, "Shop not found.");
-  return ResponseHandler(res, 200, true, shop, "Shop fetched successfully.");
+  return ResponseHandler(res, 200, true, {
+    shop,
+    items,
+  }, "Shop fetched successfully.");
 }
 /**
  * @desc    PUT UDPATE SHOP
@@ -180,6 +187,8 @@ export async function GET_SHOP_BY_SLUG(req: Request, res: Response): Promise<any
  * @returns  return udpated shop document  ⚠️
  */
 export async function UPDATE_SHOP(req: Request, res: Response): Promise<any> {
+
+
   const { shopId } = req.params;
   const ownerId = req.user?.uId;
   if (!isValidObjectId(shopId)){
@@ -192,7 +201,7 @@ export async function UPDATE_SHOP(req: Request, res: Response): Promise<any> {
       return ResponseHandler(res, 403, false, null, "Not authorized.");
   }
 
-  const {
+  let {
     name,
     description,
     location,
@@ -202,8 +211,19 @@ export async function UPDATE_SHOP(req: Request, res: Response): Promise<any> {
     deliveryFee,
     minOrderAmount,
   } = req.body;
+
+
+ schedule = JSON.parse(schedule);
+ location = JSON.parse(location);
+ categories= JSON.parse(categories);
+
+
+
+
+
+
  
-  const updates: any = {};
+   const updates: any = {};
  
   if (name && name !== shop.name) {
     updates.name = name;
@@ -229,6 +249,11 @@ export async function UPDATE_SHOP(req: Request, res: Response): Promise<any> {
   if (cloudinaryFiles.length > 0) {
     updates.image = buildImageFromCloudinarySingle(cloudinaryFiles);
   }
+
+
+  console.log('iamges',updates);
+
+
   const updated = await shopModel.findByIdAndUpdate(shopId, { $set: updates }, { new: true });
   return ResponseHandler(res, 200, true, updated, "Shop updated successfully.");
 }
@@ -402,7 +427,8 @@ export async function GET_NEARBY_SHOPS(req: Request, res: Response): Promise<any
   const lng = parseFloat(req.query.lng as string);
   const radius = parseInt(req.query.radius as string) || 5000; // metres
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
-  const limit = Math.min(50, parseInt(req.query.limit as string) || 10);
+  const limit = Math.min(50, parseInt(req.query.limit as string) || 50);
+  const itemLimit = Math.min(50, parseInt(req.query.itemLimit as string) || 100);
   const skip = (page - 1) * limit;
   if (isNaN(lat) || isNaN(lng)){
       return ResponseHandler(res, 400, false, null, "lat and lng query params are required.");
@@ -417,19 +443,43 @@ export async function GET_NEARBY_SHOPS(req: Request, res: Response): Promise<any
       },
     },
   };
- 
+
+
+
   if (req.query.category) filter.categories = req.query.category;
 //   if (req.query.isOpen !== undefined) filter.isOpen = req.query.isOpen === "true";
 filter.isOpen = req.query.isOpen === undefined ? true : req.query.isOpen === "true";
  
-  const [shops, total] = await Promise.all([
+  const [shops] = await Promise.all([
     shopModel.find(filter).skip(skip).limit(limit),
-    shopModel.countDocuments(filter),
+    // shopModel.countDocuments(filter), ⚠️⚠️ DO TO THE USUAGE OF THE $near on filter query , we wont be able to use this query 
   ]);
+  
+  // console.log('lat',lat);
+  // console.log('lng',lng);
+
+
+  const totalShops = shops.length;
+
+
+  const shopIds = shops.map((shop: any) => shop._id);
+
+  const [items, totalItems] = await Promise.all([
+    ItemModel.find({ shop: { $in: shopIds }, isDeleted: false }).sort({ createdAt: -1 }).limit(itemLimit),
+    ItemModel.countDocuments({ shop: { $in: shopIds }, isDeleted: false }),
+  ]);
+
+  
  
   return ResponseHandler(res, 200, true, {
-    shops,
-    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    shops:{
+       data:shops,
+       pagination: { page, limit, total:totalShops, pages: Math.ceil(totalShops / limit) },
+    },
+    items:{
+       data:items,
+       pagination: { page, limit: totalItems, total: totalItems, pages: Math.ceil(totalItems / limit) },
+    }
   }, "Nearby shops fetched successfully.");
 }
 /**

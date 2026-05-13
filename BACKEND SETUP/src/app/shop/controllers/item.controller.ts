@@ -30,7 +30,7 @@ export async function CREATE_ITEM(req: Request, res: Response): Promise<Response
       return ResponseHandler(res, 403, false, null, error);
   }
  
-  const {
+  let {
     name,
     description,
     price,
@@ -40,7 +40,8 @@ export async function CREATE_ITEM(req: Request, res: Response): Promise<Response
     variants,
     addons,
   } = req.body;
- 
+  variants = JSON.parse(variants);
+  addons = JSON.parse(addons);
   if (!name){
       return ResponseHandler(res, 400, false, null, "Item name is required.");
   }
@@ -121,13 +122,18 @@ export async function GET_SHOP_ITEMS(req: Request, res: Response): Promise<any> 
  */
 export async function GET_SHOP_MENU(req: Request, res: Response): Promise<any> {
   const { shopId } = req.params;
- 
   if (!isValidObjectId(shopId))
     return ResponseHandler(res, 400, false, null, "Invalid shop id.");
- 
-  const filter: any = { shop: shopId, isDeleted: false, isAvailable: true };
+  const filter: any = {
+       shop: new mongoose.Types.ObjectId(shopId),
+      isDeleted: false, 
+    ...(req.query.isAvailable !== undefined ? {isAvailable:req.query.isAvailable === "true"}  : {}),
+   };
+
   //   if (req.query.isVeg !== undefined) filter.isVeg = req.query.isVeg === "true";
   if (req.query.isVeg !== undefined) filter.isVeg = req.query.isVeg === "true";
+
+
  
   const items = await ItemModel.aggregate([
     { $match: filter },
@@ -142,8 +148,7 @@ export async function GET_SHOP_MENU(req: Request, res: Response): Promise<any> {
     { $sort: { _id: 1 } },
     { $project: { category: "$_id", items: 1, count: 1, _id: 0 } },
   ]);
- 
-  return ResponseHandler(res, 200, true, { menu: items }, "Menu fetched successfully.");
+  return ResponseHandler(res, 200, true, items, "Menu fetched successfully.");
 }
 /**
  * @desc    GET item by id
@@ -181,7 +186,7 @@ export async function UPDATE_ITEM(req: Request, res: Response): Promise<any> {
   const item = await ItemModel.findOne({ _id: itemId, shop: shopId, isDeleted: false });
   if (!item){ return ResponseHandler(res, 404, false, null, "Item not found.");}
  
-  const {
+  let {
     name,
     description,
     price,
@@ -189,21 +194,28 @@ export async function UPDATE_ITEM(req: Request, res: Response): Promise<any> {
     category,
     isVeg,
     variants,
+    preparationTime,
+    isAvailable,
     addons,
   } = req.body;
+
+  variants = JSON.parse(variants);
+  addons = JSON.parse(addons);
  
   const updates: any = {};
   if (name !== undefined) updates.name = name;
   if (description !== undefined) updates.description = description;
-  if (price !== undefined) updates.price = price;
+  if (price !== undefined && price !== "") updates.price = price;
   if (discountPrice !== undefined) updates.discountPrice = discountPrice;
   if (category !== undefined) updates.category = category;
   if (isVeg !== undefined) updates.isVeg = isVeg;
   if (variants !== undefined) updates.variants = variants;
   if (addons !== undefined) updates.addons = addons;
- 
+  if (preparationTime !== undefined) updates.preparationTime = preparationTime;
+  if (isAvailable !== undefined) updates.isAvailable = isAvailable;
   const cloudinaryFiles: any[] = req.body?.cloudinaryFiles ?? [];
   if (cloudinaryFiles.length > 0) updates.image = buildImageFromCloudinarySingle(cloudinaryFiles);
+
   const updated = await ItemModel.findByIdAndUpdate(
     itemId,
     { $set: updates },

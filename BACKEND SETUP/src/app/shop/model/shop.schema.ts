@@ -64,7 +64,7 @@ const shopSchema = new mongoose.Schema(
 
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "HotelOwner",
+      ref: "hotelOwner",
       required: true
     },
 
@@ -158,7 +158,7 @@ const shopSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
+shopSchema.index({ location: "2dsphere" });
 
 const shopModel = mongoose.models.shop || mongoose.model("shop", shopSchema);
 export default shopModel;

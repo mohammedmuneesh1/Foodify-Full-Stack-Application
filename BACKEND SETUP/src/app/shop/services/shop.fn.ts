@@ -1,7 +1,6 @@
 export const buildImageFromCloudinarySingle = (cloudinaryFiles: any[]) => {
   if (!cloudinaryFiles?.length) return undefined;
   const file = cloudinaryFiles[0];
-  console.log('cloudinary file',file)
   return {
     type: file.storageType === "cloudinary" ? "Cloudinary" : "Google",
     url: file.path,

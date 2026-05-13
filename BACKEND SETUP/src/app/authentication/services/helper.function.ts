@@ -33,7 +33,6 @@ const userIpAddress = req.headers['x-forwarded-for']
 
     let ip = userIpAddress === '::1' ? '127.0.0.1' : userIpAddress;
     const geoData = (await axios.get(`https://ipwho.is/${ip}`))?.data;
-    console.log('geoData',geoData);
     return geoData
 }
 

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setCity } from "../redux/reducers/userSlice";
+import { setCity, setUserLocationCoordinates } from "../redux/reducers/userSlice";
 import toast from "react-hot-toast";
 
 function useGetCity(isLoggedIn: boolean) {
@@ -21,7 +21,7 @@ function useGetCity(isLoggedIn: boolean) {
 
       return data;
     } catch (error) {
-      console.log("City fetch error:", error);
+      console.error("City fetch error:", error);
       return null;
     }
   };
@@ -35,7 +35,7 @@ function useGetCity(isLoggedIn: boolean) {
       const data = await res.json();
       return data;
     } catch (error) {
-      console.log(
+      console.error(
         error instanceof Error ? error.message : `Unknown error${error}`,
       );
       return null;
@@ -47,7 +47,6 @@ function useGetCity(isLoggedIn: boolean) {
 
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by this browser. Please enable it.");
-      console.log("Geolocation not supported");
       return;
     }
 
@@ -60,6 +59,7 @@ function useGetCity(isLoggedIn: boolean) {
           return;
         }
         dispatch(setCity(geoapifyResult?.address?.city ?? geoapifyResult?.address?.village)); 
+        dispatch(setUserLocationCoordinates({lat: latitude,lng:longitude }));
         localStorage.setItem("city", geoapifyResult?.address?.city ?? geoapifyResult?.address?.village);
       },
       (error) => {

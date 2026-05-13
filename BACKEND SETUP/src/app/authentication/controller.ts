@@ -266,7 +266,6 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
 
   const otp = generateOTP();
 
-  console.log('otp',otp);
 
 
     // dynamic field assignment
@@ -281,7 +280,6 @@ export async function SEND_EMAIL_OTP_CONTROLLER(
     email,
     otp.toString()
   );
-  console.log('sendEmail',sendEmail);
 
   if (!sendEmail?.success) {
     return ResponseHandler(

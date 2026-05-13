@@ -86,9 +86,7 @@ export async function HOTEL_OWNER_LOGIN_CONTROLLER(req: Request, res: Response):
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
-    console.log('this is the email',normalizedEmail);
     const hotelOwner = await HotelownerModel.findOne({ email: normalizedEmail });
-    console.log('hotelOwner',hotelOwner);
 
     if (!hotelOwner) {
       return ResponseHandler(res, 401, false, null, "Invalid email or password.");

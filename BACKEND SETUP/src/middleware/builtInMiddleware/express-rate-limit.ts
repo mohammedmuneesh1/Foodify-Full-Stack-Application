@@ -5,7 +5,7 @@ const rateLimiter =  rateLimit({
     windowMs:1*60*1000,
     max:500,
     handler:(req:Request,res:Response)=>{
-        console.log(`Rate limit reached for IP: ${req.ip}`);
+        console.info(`Rate limit reached for IP: ${req.ip}`);
         return res.status(429).json({
             success:false,
             data:null,

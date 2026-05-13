@@ -13,7 +13,7 @@ interface initialStateInterface{
     },
     city:null | string,
     loading:boolean;
-
+    userCoordinates:null | {lat:number,lng:number};
 }
 
 
@@ -21,6 +21,7 @@ const initialState:initialStateInterface = {
     value:0,
     userData:null,
     city: localStorage.getItem("city") || null,
+    userCoordinates:null,
     loading:true,
 }
 
@@ -41,13 +42,17 @@ const userSlice = createSlice({
       state.userData = null
       state.city = null
        },
+       setUserLocationCoordinates:(state,action)=>{
+         state.userCoordinates = action.payload
+       },
+
     }
 
 })
 
 
 
-export const {setuserData,setCity,logout,setLoading} = userSlice.actions
+export const {setuserData,setCity,logout,setLoading,setUserLocationCoordinates} = userSlice.actions
 export default userSlice.reducer;
 
 

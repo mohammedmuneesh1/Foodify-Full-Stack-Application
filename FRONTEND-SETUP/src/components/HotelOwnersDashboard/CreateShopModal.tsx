@@ -243,6 +243,7 @@ const CreateShopModal: React.FC<CreateShopModalProps> = ({ isOpen, onClose }) =>
             {/* Categories */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+              
               <div className="flex gap-2">
                 <input
                   className="border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#ff4d2d]/40"
@@ -258,6 +259,7 @@ const CreateShopModal: React.FC<CreateShopModalProps> = ({ isOpen, onClose }) =>
                   Add
                 </button>
               </div>
+
               <div className="flex flex-wrap gap-2 mt-2">
                 {form.categories.map((cat, i) => (
                   <span key={i} className="bg-orange-50 border border-orange-200 text-orange-700 text-sm px-3 py-1 rounded-full flex items-center gap-1.5">

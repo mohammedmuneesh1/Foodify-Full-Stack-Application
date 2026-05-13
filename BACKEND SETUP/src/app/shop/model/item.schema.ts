@@ -52,10 +52,10 @@ const itemSchema = new mongoose.Schema(
 
       price: {
       type: Number,
-      required: function(this: any) {
-        return this.variants.length === 0  // required only when no variants
-      }
-    },
+       required: function (this: any) {
+    return (this.variants?.length ?? 0) === 0;
+  },
+  },
 
     discountPrice: {
       type: Number
@@ -63,7 +63,7 @@ const itemSchema = new mongoose.Schema(
 
     category: {
       type: String, // "Biryani", "Pizza", "Drinks"
-      enum:["Snacks","Main Course", "Desserts", "Pizza", "Burgers", "Sandwiches","South Indian","North Indian","Chinese","Fast Food","Others"],
+      // enum:["Snacks","Main Course", "Desserts", "Pizza", "Burgers", "Sandwiches","South Indian","North Indian","Chinese","Fast Food","Others"],
       required: true,
     },
     isVeg: {
@@ -81,6 +81,15 @@ const itemSchema = new mongoose.Schema(
     isDeleted:{
       type:Boolean,
       default:false,
+    },
+      clicks: {
+    type: Number,
+    default: 0,
+  },
+  
+    preparationTime:{
+      type:Number,
+      default:0
     },
     rating: {
       average: {

@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setShopData, setShopLoading } from '../redux/reducers/shopSlice';
 
+
+//api just to get the shop data of the owner 
 const useGetHotelOwnerShops = () => {
 
    const dispatch = useDispatch()

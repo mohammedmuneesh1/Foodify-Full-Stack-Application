@@ -29,3 +29,34 @@ Never expose paid API keys in frontend code ❌
 
 
 //---------------------- CITY GETTING END ----------------------
+
+//---------------------- SCROLL LEFT OR RIGHT START ----------------------
+
+
+const cateScrollRef = useRef();
+
+const scrollHandler(ref,direction)=>{
+  if(ref.current){
+    ref.current.scrollBy({
+      left:direction === "left" ? -200:200,
+      behaviour:"smooth",
+    })
+  }
+}
+
+
+
+
+<div
+className="w-full flex overflow-x-auto gap-4 pb-2"
+ref={cateScrollRef}
+>
+</div>
+
+<button
+onClick={()=>scrollHandler(cateScrollRef,"left")}
+>
+scroll to left 
+</button>
+
+//---------------------- SCROLL LEFT OR RIGHT END ----------------------

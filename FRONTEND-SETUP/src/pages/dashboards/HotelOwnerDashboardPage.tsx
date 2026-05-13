@@ -1,8 +1,4 @@
-import { FiHome,  FiClipboard,
- FiTrendingUp,
-  FiClock, FiStar, FiChevronRight, FiArrowUp, FiArrowDown,
-  FiZap,
-} from "react-icons/fi";
+import {   FiClipboard, FiTrendingUp, FiClock, FiStar, FiChevronRight, FiArrowUp, FiArrowDown} from "react-icons/fi";
 
 // ── Dummy data ────────────────────────────────────────────────────────────────
 const orders = [

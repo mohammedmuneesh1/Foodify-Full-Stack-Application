@@ -1,6 +1,6 @@
 import express from 'express';
 import tryCatch from '../../../middleware/customMiddleware/tryCatch';
-import { CREATE_SHOP, DELETE_SHOP, GET_ALL_SHOPS, GET_SHOP_BY_ID, RESTORE_SHOP, SET_SHOP_ACTIVE_STATUS, SET_SHOP_OPEN_STATUS, UPDATE_SHOP, UPDATE_SHOP_IMAGE, UPDATE_SHOP_SCHEDULE } from '../controllers/shop.controller';
+import { CREATE_SHOP, DELETE_SHOP, GET_ALL_SHOPS, GET_NEARBY_SHOPS, GET_SHOP_BY_ID, GET_SHOP_BY_SLUG, RESTORE_SHOP, SET_SHOP_ACTIVE_STATUS, SET_SHOP_OPEN_STATUS, UPDATE_SHOP, UPDATE_SHOP_IMAGE, UPDATE_SHOP_SCHEDULE } from '../controllers/shop.controller';
 import { ADD_ITEM_ADDON, ADD_ITEM_VARIANT, BULK_SET_ITEM_AVAILABILITY, CREATE_ITEM, DELETE_ITEM, DELETE_ITEM_ADDON, DELETE_ITEM_VARIANT, GET_DELETED_ITEMS, GET_ITEM, GET_SHOP_ITEMS, GET_SHOP_MENU, RESTORE_ITEM, SET_ITEM_AVAILABILITY, SET_VARIANT_DISCOUNT, UPDATE_ITEM, UPDATE_ITEM_ADDON, UPDATE_ITEM_IMAGE, UPDATE_ITEM_VARIANT } from '../controllers/item.controller';
 import authMiddleware from '../../../middleware/customMiddleware/authMiddleware';
 import multerUploadMiddleware from '../../../middleware/customMiddleware/multerMiddleware';
@@ -25,12 +25,24 @@ uploadToCloudinary("shop","shopImage"),
 tryCatch(CREATE_SHOP));
 //===================== GET ALL SHOPS =====================
 router.route("/").get(authMiddleware,tryCatch(GET_ALL_SHOPS));
+
+router.route("/nearby").get(authMiddleware,tryCatch(GET_NEARBY_SHOPS)); // /nearby?lat=10.5&lng=76.1&radius=5000
 //===================== GET SHOP BY ID =====================
 router.route("/:shopId").get(authMiddleware,tryCatch(GET_SHOP_BY_ID));
 //===================== GET SHOP BY SLUG =====================
-router.route("/slug/:slug").get(authMiddleware,tryCatch(GET_SHOP_BY_ID));
+router.route("/slug/:slug").get(authMiddleware,tryCatch(GET_SHOP_BY_SLUG));
 //===================== UDPATE_SHOP_BY_ID =====================
-router.route("/:shopId").put(authMiddleware,tryCatch(UPDATE_SHOP));
+router.route("/:shopId",).put(authMiddleware,
+    multerUploadMiddleware({
+    type:"single",
+    compress:true,
+    fieldName:"shopImage",
+    compressFormat:"webp",
+    compressQualityToKeep:50,
+    isOptional:true,
+    maxSizeMB:5
+}),
+uploadToCloudinary("shop","shopImage"),authMiddleware,tryCatch(UPDATE_SHOP));
 //===================== TOGGLE SHOP OPEN STATUS =====================
 router.route("/toggle-open/:shopId").patch(authMiddleware,tryCatch(SET_SHOP_OPEN_STATUS));
 //===================== TOGGLE ACTIVE STATUS =====================
@@ -42,7 +54,6 @@ router.route("/:shopId").delete(authMiddleware,tryCatch(DELETE_SHOP));
 //===================== GET RESTORE SHOP =====================
 router.route("/:shopId/restore").patch(authMiddleware,tryCatch(RESTORE_SHOP));
 //===================== GET RESTORE SHOP =====================
-router.route("/nearby").patch(authMiddleware,tryCatch(RESTORE_SHOP)); // /nearby?lat=10.5&lng=76.1&radius=5000
 //===================== UPDATE SHOP IMAGE  =====================
 router.route("/:shopId/image").patch(authMiddleware,tryCatch(UPDATE_SHOP_IMAGE));
 //===================== GET_SHOP_STATS  =====================
@@ -52,7 +63,18 @@ router.route("/:shopId/stats").patch(authMiddleware,tryCatch(UPDATE_SHOP_IMAGE))
 
 //=========================================== ⚠️⚠️⚠️ ITEMS ROUTES ⚠️⚠️⚠️ ==============================================================
 //------------------ CREATE ITEM ------------------
-router.route("/:shopId/items").post(authMiddleware,tryCatch(CREATE_ITEM));
+router.route("/:shopId/items").post(authMiddleware,
+    multerUploadMiddleware({
+    type:"single",
+    compress:true,
+    fieldName:"itemImage",
+    compressFormat:"webp",
+    compressQualityToKeep:50,
+    isOptional:true,
+    maxSizeMB:5
+}),
+uploadToCloudinary("item","itemImage"),
+ tryCatch(CREATE_ITEM));
 //------------------ GET ALL ITEMS OF A SHOP ------------------
 router.route("/:shopId/items").get(authMiddleware,tryCatch(GET_SHOP_ITEMS));
 //------------------ GET SHOP MENU DATA ------------------
@@ -60,7 +82,18 @@ router.route("/:shopId/items/menu").get(authMiddleware,tryCatch(GET_SHOP_MENU));
 //------------------ GET ITEM BY ID ------------------
 router.route("/:shopId/items/:itemId").get(authMiddleware,tryCatch(GET_ITEM));
 //------------------ UPDATE ITEM BY ID ------------------
-router.route("/:shopId/items/:itemId").put(authMiddleware,tryCatch(UPDATE_ITEM));
+router.route("/:shopId/items/:itemId").put(
+    multerUploadMiddleware({
+    type:"single",
+    compress:true,
+    fieldName:"itemImage",
+    compressFormat:"webp",
+    compressQualityToKeep:50,
+    isOptional:true,
+    maxSizeMB:5
+}),
+uploadToCloudinary("item","itemImage"),
+ authMiddleware,tryCatch(UPDATE_ITEM));
 //------------------ UPDATE ITEM IMAGE BY ID ------------------
 router.route("/:shopId/items/:itemId/image").patch(authMiddleware,tryCatch(UPDATE_ITEM_IMAGE));
 //------------------ TOGGLE ITEM AVAILABILITY BY ID ------------------

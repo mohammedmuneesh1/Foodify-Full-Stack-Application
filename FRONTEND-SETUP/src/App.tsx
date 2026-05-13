@@ -12,13 +12,15 @@ import HotelOwnerDashboardPage from './pages/dashboards/HotelOwnerDashboardPage'
 import RoleProtectedMiddleware from './middlewares/RoleProtectedMiddleware'
 import useGetHotelOwnerShops from './hooks/useGetHotelOwnerShops'
 import HotelOwnerDashboardLayout from './components/HotelOwnersDashboard/HotelOwnerDashboardLayout'
+import HotelOwnerMenuPage from './pages/dashboards/hotelOwner/HotelOwnerMenuPage'
+import HotelOwnerSettingsPage from './pages/dashboards/hotelOwner/HotelOwnerSettingsPage'
 
 function App() {
 
   
   const { data } = useUserDetails(); // loading handled inside
   useGetCity(!!data);
-   useGetHotelOwnerShops();
+  useGetHotelOwnerShops();
 
     
 
@@ -48,13 +50,28 @@ function App() {
     </Route>
       <Route element={<ProtectedRouteMiddleware/>}>
       <Route path="/" element={<HomePage />} />
-      <Route element={<RoleProtectedMiddleware role='Hotel Owner'/>}>
+
+{/* HOTEL OWNER DASHBOARD LAYOUT START */}
+      <Route element={<RoleProtectedMiddleware 
+      role='Hotel Owner'
+      role2="Customer"
+      />}>
       <Route element = {<HotelOwnerDashboardLayout/>}>
       <Route path="/hotel-owner-dashboard/:shopId" element={<HotelOwnerDashboardPage />}/>
       <Route path="/hotel-owner-dashboard/:shopId/orders" element={<HotelOwnerDashboardPage />}/>
-      <Route path="/hotel-owner-dashboard/:shopId/menu" element={<HotelOwnerDashboardPage />}/>
+      <Route path="/hotel-owner-dashboard/:shopId/menu" element={<HotelOwnerMenuPage />}/>
+      <Route path="/hotel-owner-dashboard/:shopId/settings" element={<HotelOwnerSettingsPage />}/>
       </Route>
       </Route>
+{/* HOTEL OWNER DASHBOARD LAYOUT END */}
+
+
+{/* HOTEL OWNER DASHBOARD LAYOUT END */}
+
+
+
+
+
     </Route>
 
 
