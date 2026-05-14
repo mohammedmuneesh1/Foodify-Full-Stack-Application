@@ -10,7 +10,6 @@ import {
   FiTruck,
   FiDollarSign,
 } from "react-icons/fi";
-import { IoMdRemoveCircleOutline } from "react-icons/io";
 import toast from "react-hot-toast";
 
 

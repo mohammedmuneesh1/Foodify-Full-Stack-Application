@@ -63,7 +63,16 @@ function App() {
       <Route path="/hotel-owner-dashboard/:shopId/settings" element={<HotelOwnerSettingsPage />}/>
       </Route>
       </Route>
+
 {/* HOTEL OWNER DASHBOARD LAYOUT END */}
+
+      <Route element={<RoleProtectedMiddleware 
+      role='Customer'
+      />}
+      >
+      <Route path="/shops/:slug" element ={<HotelOwnerDashboardPage />}/>
+
+      </Route>
 
 
 {/* HOTEL OWNER DASHBOARD LAYOUT END */}

@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { CartInterface, CartItemInterface } from "../../types/userTypes";
 
 
 
@@ -14,7 +15,8 @@ interface initialStateInterface{
     city:null | string,
     loading:boolean;
     userCoordinates:null | {lat:number,lng:number};
-}
+    cart:null | CartInterface;
+};
 
 
 const initialState:initialStateInterface = {
@@ -23,8 +25,8 @@ const initialState:initialStateInterface = {
     city: localStorage.getItem("city") || null,
     userCoordinates:null,
     loading:true,
+    cart:null ;
 }
-
 const userSlice = createSlice({
     name:"user",
     initialState:initialState,
@@ -45,7 +47,18 @@ const userSlice = createSlice({
        setUserLocationCoordinates:(state,action)=>{
          state.userCoordinates = action.payload
        },
-
+       addToCart :(state,action)=>{
+        // state.cart ={
+        //     items:[...state.cart?.items ?? [],action.payload?.item],
+        //     totalAmount:action?.payload?.totalAmount
+        // }
+       },
+       removeFromCart:(state,action)=>{
+        // state.cart={
+        //     items:state.cart?.items?.filter((item:CartItemInterface)=>item._id !== action.payload._id),
+        //     totalAmount:action?.payload?.totalAmount
+        // }
+       }
     }
 
 })

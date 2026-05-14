@@ -23,5 +23,41 @@ export interface UserItemInterface {
   image?: { url: string };
   rating: { average: number; count: number };
   variants?: { name: string; price: number }[];
+  addons?: { name: string; price: number , _id:string }[];
   shop: { _id: string; name: string; deliveryTime?: number };
+}
+
+
+
+export interface CartAddonInterface {
+  name: string;
+  quantity: number;
+  price: number;
+  applyType: "per-item" | "fixed";
+}
+
+export interface CartVariantInterface {
+  _id:string;
+  name: string;
+  price: number;
+}
+
+export interface CartItemInterface {
+  _id:string;
+  item:string;
+  shop:string;
+  quantity: number;
+  variant?: CartVariantInterface | null;
+  addons: CartAddonInterface[];
+  basePrice: number;
+  totalPrice: number;
+}
+
+export interface CartInterface{
+  _id:string;
+  user:string;
+  items: CartItemInterface[];
+  totalAmount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

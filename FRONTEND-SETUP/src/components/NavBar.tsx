@@ -15,6 +15,7 @@ import toast from 'react-hot-toast';
 function NavBar() {
     const userData = useSelector((state:RootState) => state.user.userData);
     const city = useSelector((state:RootState) => state.user.city);
+    const cartData = useSelector((state:RootState) => state.user.cart);
     const queryClient = useQueryClient();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -87,7 +88,7 @@ function NavBar() {
       <div className="relative cursor-pointer">
         <FiShoppingCart className="text-xl" />
         <span className="absolute -top-2 -right-2 bg-[#ff4d2d] text-white text-xs px-1.5 rounded-full">
-          0
+        {cartData?.items?.length ?? 0}  
         </span>
       </div>
 
