@@ -10,6 +10,7 @@ import {
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import type { UserItemInterface, UserShopInterface } from "../../types/userTypes";
 import ItemCard from "../../components/UserDashboard/UserItemCard";
+import { useNavigate } from "react-router-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,8 +43,14 @@ const ItemSkeleton = () => (
 );
 
 // ─── UserShopInterface Card ────────────────────────────────────────────────────────────────
-const ShopCard = ({ shop }: { shop: UserShopInterface }) => (
-  <div className="shop-card flex-shrink-0 w-64 rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm cursor-pointer">
+const ShopCard = ({ shop }: { shop: UserShopInterface }) => {
+  
+  const navigate = useNavigate();
+  return(
+  <div
+    onClick={() => navigate(`/shops/${shop.slug}`)}
+   className="shop-card flex-shrink-0 w-64 rounded-2xl overflow-hidden
+    bg-white border border-gray-100 shadow-sm cursor-pointer">
     {/* Image */}
     <div className="relative h-36 bg-gradient-to-br from-orange-50 to-amber-100 overflow-hidden">
       {shop.image?.url ? (
@@ -109,7 +116,8 @@ const ShopCard = ({ shop }: { shop: UserShopInterface }) => (
       </div>
     </div>
   </div>
-);
+  )
+};
 
 // ─── UserItemInterface Card ────────────────────────────────────────────────────────────────
 
@@ -158,7 +166,6 @@ const UserDashboardPage = () => {
   const shops: UserShopInterface[] = data?.data?.shops?.data ?? [];
   const items: UserItemInterface[] = data?.data?.items?.data ?? [];
 
-console.log(" user coordinates", userCoordinates);
 
 
   const greeting = () => {

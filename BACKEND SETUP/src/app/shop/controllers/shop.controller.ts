@@ -6,6 +6,7 @@ import { generateUniqueSlug } from "../services/shop.dbFn";
 import shopModel from "../model/shop.schema";
 import ItemModel from "../model/item.schema";
 import logger from "../../../libs/winstonLogger";
+import { CUSTOMER_SIGN_OUT_CONTROLLER } from "../../customer/customer.controller";
 
 
 
@@ -425,7 +426,7 @@ export async function RESTORE_SHOP(req: Request, res: Response): Promise<any> {
 export async function GET_NEARBY_SHOPS(req: Request, res: Response): Promise<any> {
   const lat = parseFloat(req.query.lat as string);
   const lng = parseFloat(req.query.lng as string);
-  const radius = parseInt(req.query.radius as string) || 5000; // metres
+  const radius = parseInt(req.query.radius as string) || 50000; // metres //5000-> 5km  
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(50, parseInt(req.query.limit as string) || 50);
   const itemLimit = Math.min(50, parseInt(req.query.itemLimit as string) || 100);
@@ -446,17 +447,32 @@ export async function GET_NEARBY_SHOPS(req: Request, res: Response): Promise<any
 
 
 
+
   if (req.query.category) filter.categories = req.query.category;
 //   if (req.query.isOpen !== undefined) filter.isOpen = req.query.isOpen === "true";
 filter.isOpen = req.query.isOpen === undefined ? true : req.query.isOpen === "true";
  
+
+
+//api incoming 
+ //GET /api/shops/nearby?lat=11.0813&lng=75.9984 500 126 - 114.648 ms
+
+
+
+
   const [shops] = await Promise.all([
     shopModel.find(filter).skip(skip).limit(limit),
     // shopModel.countDocuments(filter), ⚠️⚠️ DO TO THE USUAGE OF THE $near on filter query , we wont be able to use this query 
   ]);
   
+
   // console.log('lat',lat);
-  // console.log('lng',lng);
+  // console.log('lng',lng); 
+  // 75.93689 , 11.076294
+  //lng,lat
+    // type: [Number], // [longitude, latitude]
+
+
 
 
   const totalShops = shops.length;
@@ -465,9 +481,12 @@ filter.isOpen = req.query.isOpen === undefined ? true : req.query.isOpen === "tr
   const shopIds = shops.map((shop: any) => shop._id);
 
   const [items, totalItems] = await Promise.all([
-    ItemModel.find({ shop: { $in: shopIds }, isDeleted: false }).sort({ createdAt: -1 }).limit(itemLimit),
+    ItemModel.find({ shop: { $in: shopIds }, isDeleted: false }).sort({ createdAt: -1 }).limit(itemLimit)
+    // .populate({ path: "shop", select: "name" })
+    ,
     ItemModel.countDocuments({ shop: { $in: shopIds }, isDeleted: false }),
   ]);
+
 
   
  

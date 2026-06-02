@@ -77,6 +77,8 @@ function HotelOwnerDashboardLayout() {
       onSuccess: () => {
         dispatch(logout());
         navigate("/signin");
+        localStorage.removeItem('city');
+        window.location.reload();
       },
     })
     //======================================= LOGOUT FN END =============================================== 

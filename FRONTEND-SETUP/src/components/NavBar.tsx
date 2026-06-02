@@ -15,15 +15,16 @@ import toast from 'react-hot-toast';
 function NavBar() {
     const userData = useSelector((state:RootState) => state.user.userData);
     const city = useSelector((state:RootState) => state.user.city);
-    const cartData = useSelector((state:RootState) => state.user.cart);
     const queryClient = useQueryClient();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const {cart} = useSelector((state:RootState) => state.user);
 
+
+    
 
   const { mutate: logoutFn, isPending } = useMutation({
     mutationFn: LOGOUT_API,
-
     onSuccess: () => {
         // ✅ clear redux state
         dispatch(logout())
@@ -34,6 +35,7 @@ function NavBar() {
       localStorage.removeItem('city');
       setTimeout(()=>{
           navigate('/signin')
+          window.location.reload();
       },2000);
     },
     onError: (error) => {
@@ -53,7 +55,9 @@ function NavBar() {
   <div className="max-w-7xl mx-auto px-4 h-[70px] flex items-center justify-between gap-4">
 
     {/* LOGO */}
-    <h1 className="text-2xl font-bold text-[#ff4d2d] cursor-pointer">
+    <h1 
+    onClick={() => navigate('/')}
+    className="text-2xl font-bold text-[#ff4d2d] cursor-pointer">
       Foodify
     </h1>
 
@@ -85,10 +89,12 @@ function NavBar() {
     <div className="flex items-center gap-4">
 
       {/* CART */}
-      <div className="relative cursor-pointer">
+      <div 
+      onClick={()=>navigate("/cart")}
+      className="relative cursor-pointer">
         <FiShoppingCart className="text-xl" />
         <span className="absolute -top-2 -right-2 bg-[#ff4d2d] text-white text-xs px-1.5 rounded-full">
-        {cartData?.items?.length ?? 0}  
+        {cart?.items?.length ?? 0}  
         </span>
       </div>
 

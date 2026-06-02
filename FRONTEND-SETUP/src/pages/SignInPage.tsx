@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useDispatch } from 'react-redux';
 import { setuserData } from '../redux/reducers/userSlice';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface formDataInterface{
   email:string;
@@ -27,7 +28,8 @@ const SignInPage = () => {
    });
 
    const dispatch = useDispatch();
-    const navigate = useNavigate();
+   const navigate = useNavigate();
+   const queryClient = useQueryClient();
     // const [selectedPage,setSelectedPage] = useState("false");
     const [showPassword,setShowPassword] = useState<boolean>(false);
     const [role,setRole] = useState<'Delivery Partner'| "Hotel Owner" | "Customer">("Customer");
@@ -53,10 +55,25 @@ const handleSignInFn = async ()=>{
   setButtonLoading(true);
   toast.loading("Signing in...");
   const result = await APP_LOGIN_API(role,formData);
-  console.log('this is the result',result);
+  ;
   toast.dismiss();
   setButtonLoading(false);
   if(result?.success){
+
+    if(result?.data?.role === "Customer"){
+      await queryClient.invalidateQueries({ queryKey: ["getCart"] });
+    }
+
+    if(result?.data?.role === "Hotel Owner"){
+      await queryClient.invalidateQueries({ queryKey: ["hotelOwnerShops"] });
+    }
+
+      // ⚠️⚠️⚠️⚠️ TELL TO REFETCHES THE DATA IF SUCCESS  ← tell React Query: go refetch user details now  ⚠️⚠️⚠️⚠️
+      // await queryClient.invalidateQueries({ queryKey: ["userDetails"] });
+      // await queryClient.invalidateQueries({ queryKey: ["userDetails"] });
+
+// ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
+
     dispatch(setuserData(result?.data));
     setFormData({
       email:'',

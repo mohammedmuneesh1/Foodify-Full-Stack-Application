@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { CartInterface, CartItemInterface } from "../../types/userTypes";
-
-
+//eslint-disable-next-line
+import type { CartInterface, CartItemInterface, CartPayloadInterface, UserItemInterface } from "../../types/userTypes";
+import type { LocationAdressInterface } from "../../types/addressType";
 
 
 interface initialStateInterface{
@@ -15,7 +15,18 @@ interface initialStateInterface{
     city:null | string,
     loading:boolean;
     userCoordinates:null | {lat:number,lng:number};
+    userAddress:null | LocationAdressInterface,
     cart:null | CartInterface;
+    cartModal:null | {
+        item: UserItemInterface;
+        isOpen:boolean;
+    //     onAddToCart:(payload: CartPayloadInterface) => Promise<{
+    //          statusCode?: number;
+    //          success: boolean;
+    //          response:string;
+    //          data?: { shopName?: string }
+    //  }>;
+    }
 };
 
 
@@ -24,8 +35,11 @@ const initialState:initialStateInterface = {
     userData:null,
     city: localStorage.getItem("city") || null,
     userCoordinates:null,
+    userAddress:null,
     loading:true,
-    cart:null ;
+    cart:null,
+    cartModal:null,
+    
 }
 const userSlice = createSlice({
     name:"user",
@@ -47,25 +61,58 @@ const userSlice = createSlice({
        setUserLocationCoordinates:(state,action)=>{
          state.userCoordinates = action.payload
        },
-       addToCart :(state,action)=>{
-        // state.cart ={
-        //     items:[...state.cart?.items ?? [],action.payload?.item],
-        //     totalAmount:action?.payload?.totalAmount
-        // }
+
+       openCartModal:(state,action)=>{
+        state.cartModal = action.payload
        },
+       closeCartModal:(state)=>{
+        state.cartModal = null
+       },
+       setCart:(state,action)=>{
+        state.cart = action.payload
+       },
+       setUserAddress:(state,action)=>{
+        state.userAddress = action.payload
+        },
        removeFromCart:(state,action)=>{
-        // state.cart={
-        //     items:state.cart?.items?.filter((item:CartItemInterface)=>item._id !== action.payload._id),
-        //     totalAmount:action?.payload?.totalAmount
-        // }
+        if(state?.cart){
+            //action.payload  will be cartItemId
+            state.cart = {
+                ...state.cart,
+                items: state.cart?.items?.filter((item:CartItemInterface)=>item._id !== action.payload),
+                totalAmount:action?.payload?.totalAmount - (state.cart?.items?.find((item:CartItemInterface)=>item._id === action.payload._id)?.totalPrice ?? 0)
+            }
+        }
        }
+
+
+
+
+
+    //    addToCart :(state,action)=>{
+    //     // state.cart ={
+    //     //     items:[...state.cart?.items ?? [],action.payload?.item],
+    //     //     totalAmount:action?.payload?.totalAmount
+    //     // }
+    //    },
+    //    removeFromCart:(state,action)=>{
+    //     // state.cart={
+    //     //     items:state.cart?.items?.filter((item:CartItemInterface)=>item._id !== action.payload._id),
+    //     //     totalAmount:action?.payload?.totalAmount
+    //     // }
+    //    }
     }
 
 })
 
 
 
-export const {setuserData,setCity,logout,setLoading,setUserLocationCoordinates} = userSlice.actions
+export const {setuserData,setCity,logout,setLoading,
+setUserLocationCoordinates,closeCartModal,openCartModal,
+setCart,
+removeFromCart,
+setUserAddress
+} = userSlice.actions
 export default userSlice.reducer;
 
 

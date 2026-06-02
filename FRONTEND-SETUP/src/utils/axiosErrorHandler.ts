@@ -5,6 +5,7 @@ export const axiosErrorHandler = (error: unknown) => {
     if (!error.response) {
       console.error("Network Error:", error?.message); // NOW you'll see the real message
       return {
+        statusCode: 500,
         success: false,
         response: `Network error: ${error?.message}`, // e.g. "ERR_CONNECTION_REFUSED"
       };
@@ -16,6 +17,7 @@ export const axiosErrorHandler = (error: unknown) => {
 //                          e.g. { message: "Invalid email", status: 401 }
 //                          NOT a string!
     return {
+      statusCode: error?.response?.status,
       success: false,
       response: error?.response?.data?.response,
 
@@ -30,6 +32,7 @@ export const axiosErrorHandler = (error: unknown) => {
   if (error instanceof Error) {
     console.error("Error:", error?.message);
     return {
+      statusCode: 500,
       success: false,
       response: error?.message,
     };

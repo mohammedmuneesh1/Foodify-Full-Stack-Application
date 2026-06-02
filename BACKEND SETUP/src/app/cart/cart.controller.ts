@@ -29,6 +29,29 @@ export async function ADD_TO_CART(req: Request,res: Response): Promise<Response>
       addons = [],
      forceReplaceCart = false,
     } = req.body;
+
+    console.log("req.body",req.body)
+//     req.body {
+//   itemId: '69fc7f443e6730ba6612c9f0',
+//   quantity: 1,
+//   variantId: '69fc7f443e6730ba6612c9f2',
+//   addons: [
+//     {
+//       addonId: '69fc7f443e6730ba6612c9f3',
+//       quantity: 1,
+//       applyType: 'fixed',
+//       price: 20
+//     },
+//     {
+//       addonId: '69fc7f443e6730ba6612c9f4',
+//       quantity: 1,
+//       applyType: 'fixed',
+//       price: 10
+//     }
+//   ],
+//   forceReplaceCart: false
+// }
+
     if (!mongoose.Types.ObjectId.isValid(itemId)) {
       return ResponseHandler(
         res,
@@ -130,10 +153,11 @@ export async function ADD_TO_CART(req: Request,res: Response): Promise<Response>
         const addonTotalPrice = foundAddon.price * addonQuantity;
         
         // Determine addon type: 'per-item' (default) or 'fixed'
-        const applyType = foundAddon.applyType || 'fixed';
+        const applyType = adOnItem.applyType || 'fixed';
+        console.log('passed here', applyType)
 
         selectedAddons.push({
-          addonId: foundAddon._id,
+          _id: foundAddon._id, //THIS IS "ADDON ID" "addonId"
           name: foundAddon.name,
           price: foundAddon.price,
           quantity: addonQuantity,
@@ -158,29 +182,27 @@ export async function ADD_TO_CART(req: Request,res: Response): Promise<Response>
     */
 
     const basePrice = selectedVariant? selectedVariant.price : item.price;
-    
     //⚠️⚠️⚠️ Separate per-item and fixed addons ⚠️⚠️⚠️
     const perItemAddons = selectedAddons.filter((addon: any) => addon.applyType !== 'fixed');
     const fixedAddons = selectedAddons.filter((addon: any) => addon.applyType === 'fixed');
-    
     // Per-item addons are multiplied by quantity
     const perItemAddonsPrice = perItemAddons.reduce((acc: number, addon: any) => acc + addon.totalPrice,0);
-    
     // Fixed addons apply only once
     const fixedAddonsPrice = fixedAddons.reduce((acc: number, addon: any) => acc + addon.price * addon.quantity,0);
     const singleItemPrice = basePrice + perItemAddonsPrice;
     const totalPrice = singleItemPrice * quantity + fixedAddonsPrice;
-
     /*
     ==========================================
     FIND OR CREATE CART
     ==========================================
     */
-
     let cart: any = await CartModel.findOne({
       user: userId,
+    }).populate({
+      path: "items.shop",
+      select: "name image isAvailable",
     });
-
+    
     if (!cart) {
       cart = await CartModel.create({
         user: userId,
@@ -258,13 +280,13 @@ export async function ADD_TO_CART(req: Request,res: Response): Promise<Response>
 
     if (
       cart.items.length > 0 &&
-      cart.items[0].shop.toString() !== item.shop.toString()
+      cart.items[0].shop?._id.toString() !== item.shop.toString()
     ) {
       return ResponseHandler(
         res,
         409,
         false,
-        null,
+        {shopName: cart.items[0].shop?.name},
         "Your cart contains items from another restaurant. Order your current cart or replace it with this item."
       );
     }
@@ -282,7 +304,7 @@ const normalizeAddons = (addons: any[]) => {
 
   return addons
     .map((a) => ({
-      addonId: a.addonId.toString(),
+      addonId: a._id.toString(),
       quantity: a.quantity,
       applyType: a.applyType,
     }))
@@ -330,8 +352,7 @@ const normalizeAddons = (addons: any[]) => {
 //⚠️⚠️⚠️⚠️ 
 
 
-    const existingItem = cart.items.find(
-      (cartItem: any) => {
+    const existingItem = cart.items.find((cartItem: any) => {
         const cartAddons = JSON.stringify(normalizeAddons(cartItem.addons));
 
         return (
@@ -380,9 +401,21 @@ const normalizeAddons = (addons: any[]) => {
     RECALCULATE CART TOTAL
     ==========================================
     */
-
     cart.totalAmount = cart.items.reduce((acc: number, item: any) =>acc + item.totalPrice,0);
     await cart.save();
+
+    await cart.populate([
+  {
+    path: "items.item",
+    select: "name image isAvailable",
+  },
+  {
+    path: "items.shop",
+    select: "name image deliveryTime",
+  },
+]);
+
+
     return ResponseHandler(
       res,
       200,
@@ -402,6 +435,7 @@ export async function GET_CART(
   res: Response
 ): Promise<any> {
     const userId = req.user?.uId;
+    
     if (!userId) {
       return ResponseHandler(
         res,
@@ -457,6 +491,8 @@ export async function UPDATE_CART_ITEM_QUANTITY(
 
   try {
 
+    console.log("⚠️⚠️ PATCH HITTING............................ ")
+
     const userId = req.user?.uId;
     const { cartItemId } = req.params;
     const { quantity } = req.body;
@@ -471,15 +507,15 @@ export async function UPDATE_CART_ITEM_QUANTITY(
       );
     }
 
-    if (quantity < 1) {
-      return ResponseHandler(
-        res,
-        400,
-        false,
-        null,
-        "Quantity must be at least 1."
-      );
-    }
+    // if (quantity < 1) {
+    //   return ResponseHandler(
+    //     res,
+    //     400,
+    //     false,
+    //     null,
+    //     "Quantity must be at least 1."
+    //   );
+    // }
 
     const cart: any = await CartModel.findOne({
       user: userId,
@@ -542,6 +578,20 @@ export async function UPDATE_CART_ITEM_QUANTITY(
     }
     //480 total including addon quantity = 3  so per item 160     totalprice =480 / 3 = 160
     await cart.save();
+
+    await cart.populate([
+      {
+      path: "items.item",
+      select: "name image isAvailable",
+    },
+    {
+      path: "items.shop",
+      select: "name image deliveryTime",
+    }]);
+      
+    
+
+
     return ResponseHandler(
       res,
       200,
@@ -588,6 +638,13 @@ export async function REMOVE_CART_ITEM(req: Request,res: Response): Promise<any>
     }
     const cart: any = await CartModel.findOne({
       user: userId,
+    }).populate({
+      path: "items.item",
+      select: "name image isAvailable",
+    })
+    .populate({
+      path: "items.shop",
+      select: "name image deliveryTime",
     });
     if (!cart) {
       return ResponseHandler(

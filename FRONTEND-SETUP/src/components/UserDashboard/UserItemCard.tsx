@@ -1,6 +1,16 @@
+
+
+/*eslint-disable */
+
 import { FiClock, FiShoppingBag, FiStar } from "react-icons/fi";
 import { MdOutlineRestaurantMenu } from "react-icons/md";
 import type { UserItemInterface } from "../../types/userTypes";
+import AddToCartModal from "./UserCartToModal";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { ADD_OR_REPLACE_CART_ITEM } from "../../api/cartApi";
+import { useDispatch } from "react-redux";
+import { openCartModal } from "../../redux/reducers/userSlice";
 
 
 
@@ -20,13 +30,58 @@ const VegBadge = ({ isVeg }: { isVeg: boolean }) => (
 
 
 const ItemCard = ({ item }: { item: UserItemInterface }) => {
+
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const dispatch = useDispatch();
+
   const hasDiscount = item.discountPrice && item.discountPrice < (item.price ?? Infinity);
   const discountPct = hasDiscount
     ? Math.round(((item.price! - item.discountPrice!) / item.price!) * 100)
     : 0;
 
+  // const hasVariants = (item.variants?.length ?? 0) > 0;
+  // const hasAddons = (item.addons?.length ?? 0) > 0;
+  // const needsModal = hasVariants || hasAddons;
+
+
+
+
+
+
+
+
+
+
+
+
+  // const handleDirectAdd = async (e: React.MouseEvent) => {
+  //   e.stopPropagation(); // prevent card click bubbling
+  //   await handleAddToCart({
+  //     itemId: item._id,
+  //     quantity: 1,
+  //     addons: [],
+  //     forceReplaceCart: false,
+  //   });
+  // };
+
+
+  //   const handleAddClick = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (needsModal) {
+  //     setModalOpen(true);
+  //   } else {
+  //     handleDirectAdd(e);
+  //   }
+  // };
+
+
+
+
   return (
-    <div className="item-card bg-white rounded-2xl border border-gray-100 shadow-sm flex overflow-hidden cursor-pointer h-full">
+    <>
+
+<div className="relative h-full">
+    <div className="h-full item-card bg-white rounded-2xl border border-gray-100 shadow-sm flex overflow-hidden cursor-pointer ">
       {/* Text side */}
       <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
         <div>
@@ -91,10 +146,22 @@ const ItemCard = ({ item }: { item: UserItemInterface }) => {
   
       </div>
 
-        <button className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white border-2 border-[#ff4d2d] text-[#ff4d2d] text-xs font-bold px-4 py-1 rounded-lg shadow-sm hover:bg-[#ff4d2d] hover:text-white transition">
+    </div>
+
+    
+        <button
+        onClick={()=>dispatch(openCartModal({
+          item,
+          isOpen:true,
+        }))}
+        className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white border-2 border-[#ff4d2d] text-[#ff4d2d] text-xs font-bold px-4 py-1 rounded-lg shadow-sm hover:bg-[#ff4d2d] hover:text-white transition">
           ADD
         </button>
-    </div>
+
+
+</div>
+
+    </>
   );
 };
 export default ItemCard;

@@ -14,13 +14,22 @@ import useGetHotelOwnerShops from './hooks/useGetHotelOwnerShops'
 import HotelOwnerDashboardLayout from './components/HotelOwnersDashboard/HotelOwnerDashboardLayout'
 import HotelOwnerMenuPage from './pages/dashboards/hotelOwner/HotelOwnerMenuPage'
 import HotelOwnerSettingsPage from './pages/dashboards/hotelOwner/HotelOwnerSettingsPage'
+import AddToCartModal from './components/UserDashboard/UserCartToModal'
+import useGetCart from './hooks/useGetCarts'
+import CartPage from './pages/dashboards/customer/CustomerCartPage'
+import ShopBySlugPage from './pages/ShopBySlugPage'
 
 function App() {
 
   
   const { data } = useUserDetails(); // loading handled inside
-  useGetCity(!!data);
+  useGetCity(!!data?.data);
   useGetHotelOwnerShops();
+  const isCustomer = data?.data?.role === "Customer";
+  useGetCart(!!data?.data && isCustomer);
+
+
+
 
     
 
@@ -48,6 +57,7 @@ function App() {
     <Route path="/signin" element={<SignInPage />} />
 
     </Route>
+
       <Route element={<ProtectedRouteMiddleware/>}>
       <Route path="/" element={<HomePage />} />
 
@@ -70,7 +80,21 @@ function App() {
       role='Customer'
       />}
       >
-      <Route path="/shops/:slug" element ={<HotelOwnerDashboardPage />}/>
+
+
+         <Route element={<CustomerLayout />}>
+    <Route
+      path="/shops/:slug"
+      element={<ShopBySlugPage />}
+    />
+
+    <Route
+      path="/cart"
+      element={<CartPage />}
+    />
+  </Route>
+
+   
 
       </Route>
 
@@ -89,6 +113,10 @@ function App() {
   {/*PROTECTIVE ROUTE START */}
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
   </Routes>
+
+      <AddToCartModal />
+
+
     </>
   )
 }
@@ -112,3 +140,20 @@ export default App
 //   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
 // </Routes>
+
+
+
+import { Outlet } from "react-router-dom";
+import NavBar from './components/NavBar'
+
+const CustomerLayout = () => {
+  return (
+    <>
+      <NavBar />
+
+      <main>
+        <Outlet />
+      </main>
+    </>
+  );
+};

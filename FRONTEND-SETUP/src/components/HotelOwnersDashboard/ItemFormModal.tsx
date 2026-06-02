@@ -326,6 +326,9 @@ if (!isOpen) return null;
                       <p className="text-xs text-amber-500 mt-1">Set per variant</p>
                     )}
                   </div>
+ 
+                  {/* 
+                  ⚠️⚠️ temporarly disabled  discount price section
                   <div>
                     <label className={labelCls}>Discount Price (₹)</label>
                     <input
@@ -335,7 +338,9 @@ if (!isOpen) return null;
                       value={form.discountPrice}
                       onChange={(e) => set("discountPrice", e.target.value)}
                     />
-                  </div>
+                  </div> 
+                  ⚠️⚠️ temporarly disabled discount price section 
+                  */}
                 </div>
 
                 {/* Toggles row */}
@@ -430,7 +435,9 @@ if (!isOpen) return null;
                     </div>
 
                     {/* Variant discount */}
-                    <div className="border-t border-gray-100 pt-3">
+
+                      {/*⚠️⚠️⚠️  TEMPORARLY DISABLED PRICING SECTION */}
+                    {/* <div className="border-t border-gray-100 pt-3">
                       <div className="flex items-center gap-2 mb-2">
                         <button
                           onClick={() => updateVariant(i, "discount", { ...v.discount, isActive: !v.discount?.isActive })}
@@ -463,7 +470,8 @@ if (!isOpen) return null;
                           </div>
                         </div>
                       )}
-                    </div>
+                    </div> */}
+                    {/*⚠️⚠️⚠️  TEMPORARLY DISABLED PRICING SECTION */}
                   </div>
                 ))}
               </div>

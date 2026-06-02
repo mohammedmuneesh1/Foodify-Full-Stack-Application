@@ -21,6 +21,7 @@ export interface UserItemInterface {
   category: string;
   isVeg: boolean;
   image?: { url: string };
+  isAvailable?: boolean;
   rating: { average: number; count: number };
   variants?: { name: string; price: number }[];
   addons?: { name: string; price: number , _id:string }[];
@@ -29,7 +30,7 @@ export interface UserItemInterface {
 
 
 
-export interface CartAddonInterface {
+export interface CartAddonInterface{
   name: string;
   quantity: number;
   price: number;
@@ -61,3 +62,19 @@ export interface CartInterface{
   createdAt: Date;
   updatedAt: Date;
 }
+
+
+
+export interface CartPayloadInterface {
+  itemId: string;
+  quantity: number;
+  variantId?: string;
+  selectedVariant?: {_id: string; name: string; price: number };
+  addons: {
+    addonId: string;
+    quantity: number;
+    price: number;
+  }[];
+  forceReplaceCart?: boolean;
+}
+ 

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { setCity, setUserLocationCoordinates } from "../redux/reducers/userSlice";
+import { setCity, setUserAddress, setUserLocationCoordinates } from "../redux/reducers/userSlice";
 import toast from "react-hot-toast";
 
 function useGetCity(isLoggedIn: boolean) {
@@ -18,6 +18,16 @@ function useGetCity(isLoggedIn: boolean) {
       }
 
       const data = await res.json();
+      console.log("Geolocation API response:", data);
+      dispatch(setUserAddress({
+        addressLine: data.display_name,
+        postalCode: data?.address?.postcode || "",
+        state: data?.address?.state || "",
+        city: data?.address?.city || data?.address?.village ,
+        latitude,
+        longitude,
+        country: data?.address?.country,
+      }));
 
       return data;
     } catch (error) {
@@ -53,13 +63,14 @@ function useGetCity(isLoggedIn: boolean) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        dispatch(setUserLocationCoordinates({lat: latitude,lng:longitude }));
+        
         const geoapifyResult = await getCity(latitude, longitude);
         if (!geoapifyResult) {
           toast.error("Network issue occured while fetching your location. Please try again later.");
           return;
         }
         dispatch(setCity(geoapifyResult?.address?.city ?? geoapifyResult?.address?.village)); 
-        dispatch(setUserLocationCoordinates({lat: latitude,lng:longitude }));
         localStorage.setItem("city", geoapifyResult?.address?.city ?? geoapifyResult?.address?.village);
       },
       (error) => {
