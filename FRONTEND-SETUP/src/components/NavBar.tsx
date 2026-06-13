@@ -8,7 +8,7 @@ import { splitFirstLetters } from '../utils/basicUtils';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { LOGOUT_API } from '../api/authApi';
 import { logout } from '../redux/reducers/userSlice';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 
@@ -51,7 +51,7 @@ function NavBar() {
 
 
   return (
-<div className="w-full fixed top-0 z-50 bg-white shadow-sm ">
+<div className="w-full fixed top-0 z-9999 bg-white shadow-sm ">
   <div className="max-w-7xl mx-auto px-4 h-[70px] flex items-center justify-between gap-4">
 
     {/* LOGO */}
@@ -99,9 +99,15 @@ function NavBar() {
       </div>
 
       {/* ORDERS */}
-      <button className="hidden md:block px-3 py-1.5 rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] text-sm font-medium hover:bg-[#ff4d2d]/20 transition">
+      {
+        userData?.role === "Customer" && (
+      <Link to="/my-orders" className="hidden md:block px-3 py-1.5
+       rounded-lg bg-[#ff4d2d]/10 text-[#ff4d2d] text-sm font-medium hover:bg-[#ff4d2d]/20 transition"
+       >
         My Orders
-      </button>
+      </Link>
+        )
+      }
 
       {/* PROFILE + DROPDOWN MENU START*/}
       <div className="relative group">

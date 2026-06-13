@@ -5,6 +5,7 @@ interface User extends Document {
     name:string;
     email: string;
     password: string;
+    phone?:string;
     isEmailVerified: boolean;
     role:'User'|'Admin';
   }
@@ -15,6 +16,7 @@ interface User extends Document {
 const UserSchema = new Schema<User>({
     name:{type:String,required:true},
     email: { type: String, required: true, unique: true },
+    phone:{type:String},
     password: { type: String, required: true },
     isEmailVerified: { type: Boolean, default: true }, 
     role: { type: String, enum: ['User', 'Admin'], default: 'User' },

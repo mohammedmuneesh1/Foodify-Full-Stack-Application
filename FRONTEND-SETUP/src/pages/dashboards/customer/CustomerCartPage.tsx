@@ -10,6 +10,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { REMOVE_CART_ITEM, UPDATE_CART_ITEM_QUANTITY } from "../../../api/cartApi";
 import {  setCart } from "../../../redux/reducers/userSlice";
 import UserLocationPicker from "../../../components/map/UserLocationPicker";
+import { PLACE_ORDER_API } from "../../../api/orderPlace";
+import { Link } from "react-router-dom";
+// import { PLACE_ORDER_API } from "../../../api/orderPlace";
 
 // interface Props {
 //   cart: CartInterface | null;
@@ -18,12 +21,13 @@ import UserLocationPicker from "../../../components/map/UserLocationPicker";
 export default function CartPage() {
 
 const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
-const {cart} = useSelector((state:RootState) => state.user);
+const {cart,userAddress} = useSelector((state:RootState) => state.user);
+
+console.log('userAddress',userAddress);
 
 const dispatch = useDispatch();
 //eslint-disable-next-line
 const queryClient = useQueryClient();
-
 
   const [paymentMethod, setPaymentMethod] = useState<
     "cod" | "prepaid"
@@ -32,10 +36,7 @@ const queryClient = useQueryClient();
 
 
 
-
-
-
-
+//-------------------------------- CART QUANTITY UDPATE START --------------------------------
   const {mutate:updateItemQuantityFn,isPending:isUpdatingQuantity} = useMutation({
     mutationFn(payload:{cartItemId:string,action:"increase" | "decrease"}) {
       const {cartItemId,action} = payload;
@@ -55,8 +56,53 @@ const queryClient = useQueryClient();
         setUpdatingItemId(null);
     }
   });
+//-------------------------------- CART QUANTITY UDPATE END --------------------------------
+
+//-------------------------------- PLACE ORDER START --------------------------------
 
 
+const {mutate:placeOrderMutateFn,isPending:isPlacingOrder} = useMutation({
+  mutationFn: (obj:object) =>PLACE_ORDER_API(obj),
+  onSuccess:(data) => {
+    if (!data?.success) {
+      toast.error(data?.response || "Something went wrong.");
+      return;
+    }
+    dispatch(setCart(data?.data ?? null)); // Update cart in Redux with latest from server
+  },
+  onError: (error) => {
+    toast.error(error.message);
+
+  }
+});
+
+
+// //eslint-disable-next-line
+const placeOrderFn = ()=>{
+if(!userAddress?.contactName || !userAddress?.contactPhone) {
+  return toast.error("Please Provide contactName and contact phone number")
+}
+
+const obj ={
+  paymentMethod:paymentMethod,
+  deliveryAddress:{
+    label:userAddress?.label || "Home",
+    addressLine:userAddress?.addressLine,
+    postalCode:userAddress?.postalCode,
+    state:userAddress?.state,
+    city:userAddress?.city,
+    latitude:userAddress?.latitude,
+    longitude:userAddress?.longitude,
+    country:userAddress?.country,
+    contactName:userAddress?.contactName,
+    contactPhone:userAddress?.contactPhone,
+  },
+}
+
+placeOrderMutateFn(obj);
+
+}
+//-------------------------------- PLACE ORDER END --------------------------------
 
 
   const manageQuantity = (itemId: string, action: "increase" | "decrease") => {
@@ -68,7 +114,7 @@ const queryClient = useQueryClient();
 
 
 
-    const { mutate:deleteItemFn, } = useMutation({
+    const { mutate:deleteItemFn, isSuccess } = useMutation({
   mutationFn: (cartItemId:string) =>REMOVE_CART_ITEM(cartItemId),
   
     onMutate: () => {
@@ -116,8 +162,87 @@ const queryClient = useQueryClient();
   }
 
 
+
+  if(isSuccess){
+    return(
+      <div className="max-w-lg mx-auto text-center py-16 px-6">
+  {/* Success Icon */}
+  <div className="w-24 h-24 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-12 h-12 text-green-600"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={3}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  </div>
+
+  {/* Title */}
+  <h1 className="mt-6 text-3xl font-bold text-gray-900">
+    Order Placed Successfully!
+  </h1>
+
+  {/* Description */}
+  <p className="mt-4 text-gray-600 leading-relaxed">
+    Thank you for your order. We're preparing your items and will notify
+    you once your order has been dispatched.
+  </p>
+
+  <p className="mt-2 text-sm text-gray-500">
+    You can track the status of your order anytime from the{" "}
+    <span className="font-medium text-gray-800">My Orders</span> section.
+  </p>
+
+  {/* Actions */}
+  <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+    <Link
+      to="/account/orders"
+      className="px-6 py-3 rounded-lg bg-primary text-white font-medium hover:opacity-90 transition"
+    >
+      View My Orders
+    </Link>
+
+    <Link
+      to="/"
+      className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition"
+    >
+      Continue Shopping
+    </Link>
+  </div>
+</div>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 py-8">
+
+      {isPlacingOrder && (
+  <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+    {/* Animated circles */}
+    <div className="relative flex items-center justify-center">
+      <div className="absolute h-20 w-20 rounded-full border-4 border-green-200 animate-ping" />
+      <div className="h-16 w-16 rounded-full border-4 border-green-500 border-t-transparent animate-spin" />
+    </div>
+
+    {/* Text */}
+    <h2 className="mt-8 text-xl font-semibold text-gray-800">
+      Placing your order...
+    </h2>
+
+    <p className="mt-2 text-sm text-gray-500 animate-pulse">
+      Please don't refresh or close this page
+    </p>
+  </div>
+)}
+
+
       <div className="max-w-6xl mx-auto px-4">
 
         {/* Header */}
@@ -373,6 +498,9 @@ const queryClient = useQueryClient();
 
             {/* Place Order */}
             <button
+            disabled={isPlacingOrder}
+            onClick={placeOrderFn}
+
               className="
                 w-full
                 bg-orange-500
@@ -384,7 +512,16 @@ const queryClient = useQueryClient();
                 rounded-2xl
               "
             >
-              Place Order
+              {
+                isPlacingOrder ? (
+"Placing Order..."
+                ):(
+
+                  "Place Order"
+
+                )
+              }
+              
             </button>
           </aside>
         </div>

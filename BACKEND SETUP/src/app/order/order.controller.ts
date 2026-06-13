@@ -12,8 +12,10 @@ export async function PLACE_ORDER(
   req: Request,
   res: Response
 ): Promise<any> {
-  const { userId } = req.params;
-  const { shopId, paymentMethod, deliveryAddress, note } = req.body;
+  
+
+  const userId = req.user?.uId;
+  const {  paymentMethod, deliveryAddress, note } = req.body;
 
   // Validate payment method
   if (!["cod", "online"].includes(paymentMethod)) {
@@ -43,17 +45,26 @@ export async function PLACE_ORDER(
     );
   }
 
+  console.log('userId',userId);
   // Fetch user's cart
   const cart = await CartModel.findOne({ user: userId }).populate("items.item");
+  console.log(cart);
+  
 
   if (!cart || cart.items.length === 0) {
     return ResponseHandler(res, 400, false, null, "Cart is empty.");
   }
 
+  //FOLLOWING SWIGGY/ZOMOTO STYLE ONLY ORDER FROM ONE SHOP AT A TIME
+  const shopId = cart.items[0].shop.toString();
+  console.log('shopId',cart.items[0]?.item);
+
   // Filter cart items for the specific shop
-  const shopCartItems = cart.items.filter(
-    (item: any) => item.shop.toString() === shopId
-  );
+  // const shopCartItems = cart.items.filter(
+  //   (item: any) => item.shop.toString() === shopId
+  // );
+  const shopCartItems = cart.items;
+
 
   if (shopCartItems.length === 0) {
     return ResponseHandler(
@@ -70,7 +81,13 @@ export async function PLACE_ORDER(
     item: cartItem.item._id,
     shop: cartItem.shop,
     quantity: cartItem.quantity,
-    variant: cartItem.variant,
+    ...(cartItem.variant && {
+      variant:{
+        name: cartItem.variant.name,
+        price: cartItem.variant.price,
+      }
+    }),
+    // variant: cartItem.variant,
     addons: cartItem.addons,
     basePrice: cartItem.basePrice,
     totalPrice: cartItem.totalPrice,
@@ -131,8 +148,8 @@ export async function GET_USER_ORDERS(
   req: Request,
   res: Response
 ): Promise<any> {
-  const { userId } = req.params;
-  const { status, skip = 0, limit = 10 } = req.query;
+  const userId = req.user?.uId;
+  const { status, skip = 0, limit = 50 } = req.query;
 
   const filter: any = { user: userId };
   if (status && status !== "all") {
@@ -187,6 +204,15 @@ export async function UPDATE_ORDER_STATUS(
 ): Promise<any> {
   const { orderId } = req.params;
   const { status } = req.body;
+  const userId = req.user?.uId;
+  const userRole = req.user?.role;
+
+  if(userRole !== "Hotel Owner"){
+    return ResponseHandler(res, 400, false, null, "Invalid role.");
+  }
+
+  if(!orderId) return ResponseHandler(res, 400, false, null, "Order ID is required.");
+
 
   const validStatuses = [
     "pending",
@@ -284,27 +310,50 @@ export async function GET_SHOP_ORDERS(
   res: Response
 ): Promise<any> {
   const { shopId } = req.params;
-  const { status, skip = 0, limit = 20 } = req.query;
+  const { status } = req.query;
+ 
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Number(req.query.limit) || 1;
+  const skip =  limit * (page - 1);
 
   const filter: any = { shop: shopId };
   if (status && status !== "all") {
     filter.status = status;
   }
 
-  const orders = await OrderModel.find(filter)
-    .populate("user", "name email phone")
-    .populate("items.item", "name image")
-    .sort({ createdAt: -1 })
-    .skip(Number(skip))
-    .limit(Number(limit));
 
-  const total = await OrderModel.countDocuments(filter);
+  const [orders, total, totalOrders, pendingOrders, deliveredOrder, preparingOrders] = await Promise.all([
+    OrderModel.find(filter)
+      .populate("user", "name email phone")
+      .populate("items.item", "name image")
+      .sort({ createdAt: -1 })
+      .skip(Number(skip))
+      .limit(Number(limit)),
+    OrderModel.countDocuments(filter),
+    OrderModel.countDocuments({ shop: shopId }),
+    OrderModel.countDocuments({ shop: shopId, status: "pending" }),
+    OrderModel.countDocuments({ shop: shopId, status: "delivered" }),
+    OrderModel.countDocuments({ shop: shopId, status: "preparing" }),
+  ]);
+
+
+
+  const totalPages = Math.ceil(total / limit);
+
 
   return ResponseHandler(
     res,
     200,
     true,
-    { orders, total, skip: Number(skip), limit: Number(limit) },
+    { orders, total,
+       skip: Number(skip),
+        limit: Number(limit),
+        totalPages: Number(totalPages),
+        totalOrders,
+        pendingOrders,
+        deliveredOrder,
+        preparingOrders,
+     },
     "Shop orders fetched successfully."
   );
 }

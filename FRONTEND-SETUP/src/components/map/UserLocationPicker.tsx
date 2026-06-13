@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { MdSearch } from "react-icons/md";
+import { MdModeEditOutline, MdSearch } from "react-icons/md";
 import { IoLocationSharp } from "react-icons/io5";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import "leaflet/dist/leaflet.css";
@@ -43,6 +43,8 @@ const UserLocationPicker = () => {
     phone: "",
     label:"Home",
   });
+
+  const [enableEdit, setEnableEdit] = useState<boolean>(false);
 
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -139,7 +141,6 @@ const UserLocationPicker = () => {
     if(namePhone?.phone.trim().length !== 10){
         return toast.error("Please enter a valid phone number")
     }
-
     const existingObj = {
         ...userAddress,
         contactName: namePhone.name,
@@ -148,10 +149,11 @@ const UserLocationPicker = () => {
     }
     dispatch(setUserAddress(existingObj))
     toast.success("Contact details saved!")
+    setEnableEdit(false);
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm">
+    <div className="bg-white rounded-2xl p-5 shadow-sm ">
       <h2 className="font-semibold text-lg">Address / Location</h2>
 
       {/* Search row */}
@@ -182,28 +184,32 @@ const UserLocationPicker = () => {
           <IoLocationSharp />
         </button>
       </div>
+      {/* Search row end*/}
 
       {/* Status messages */}
       {loading && <p className="text-sm text-gray-400 mt-2">Searching...</p>}
       {error   && <p className="text-sm text-red-500  mt-2">{error}</p>}
 
       {/* Map Start */}
+      <div className="z-0">
       <MapContainer
         center={position}
         zoom={13}
         scrollWheelZoom={true}
         dragging={true}
-        className="h-64 w-full mt-4 rounded-lg overflow-hidden"
+        className="h-64 w-full mt-4 rounded-lg overflow-hidden !z-0"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          className='z-0'
         />
         <MapUpdater position={position} />
         <Marker position={position}>
           <Popup>Selected location</Popup>
         </Marker>
       </MapContainer>
+      </div>
       {/* Map End */}
 
 
@@ -219,9 +225,23 @@ const UserLocationPicker = () => {
 
       {/*PHONE + HOME OR WORK START */}
 
-      <div className="border border-gray-300 rounded-lg p-2 mt-4">
-        <h3 className="font-medium text-md mt-4">Contact Details:</h3>
+      <div 
+      title="Contact Details"
+      className={`border relative border-gray-300 rounded-lg 
+       mt-4 ${enableEdit ? " " :  "  bg-gray-400/10  "  }  `}>
+    
+    
+    <span className="absolute -top-3 left-3 bg-white px-2 text-xs text-gray-500 flex items-center gap-1 rounded-md">
+    Contact Details{
+       !enableEdit && (
+         <MdModeEditOutline  onClick={() => setEnableEdit(true)} className="ml-2 cursor-pointer" />
+       )
+    }
+  </span>
 
+
+  <div className={`w-full p-2 ${enableEdit ? " " :  " pointer-events-none "  } `} >
+        <h3 className="font-medium text-md mt-4">Contact Details:</h3>
 
         <div>
         <span className="text-sm text-gray-600 mt-1 block font-semibold">
@@ -280,13 +300,31 @@ const UserLocationPicker = () => {
                 </div>
               </div>
 
+  </div>
 
+  <div className="mb-2 mr-2">
+{
+  userAddress && !userAddress?.label && !userAddress?.contactName && !userAddress?.contactPhone && (
 
-        <button 
+    enableEdit ? (
+  <button 
         onClick={setNameAndPhone}
         className="bg-[#ff4d2d] text-white px-3 py-1 rounded-md mt-3 block ml-auto">
                 Save Contact
         </button>
+    ):
+    (
+      <button 
+      onClick={() => setEnableEdit(true)}
+      className="bg-blue-500 text-white px-3 py-1 rounded-md mt-3 block ml-auto ">
+         Enable Edit
+      </button>
+
+    )
+
+  )
+}
+  </div>
 
       </div>
 

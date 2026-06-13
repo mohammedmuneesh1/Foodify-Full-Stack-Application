@@ -85,7 +85,9 @@ function HotelOwnerDashboardLayout() {
    if(loading || shopLoading) return null;
 
   return (
-        <div className="min-h-screen flex bg-[#f7f8fc]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+        <div className="min-h-screen flex bg-[#f7f8fc] z-50"  
+        style={{ fontFamily: "'DM Sans', sans-serif" }}
+        >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
 
@@ -121,7 +123,7 @@ function HotelOwnerDashboardLayout() {
 
    {/* ══════════════════════════════ SIDEBAR ══════════════════════════════ */}
       <aside className={`
-        fixed top-0 left-0 bottom-0 z-50  w-64 bg-white flex flex-col
+        fixed top-0 left-0 bottom-0 z-[9999]  w-64 bg-white flex flex-col
         border-r border-gray-100 shadow-xl
         transform transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
@@ -129,7 +131,7 @@ function HotelOwnerDashboardLayout() {
       `}>
 
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 h-[72px] border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 z-9999 h-[72px] border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-[#ff4d2d] flex items-center justify-center">
               <FiZap size={16} className="text-white" />

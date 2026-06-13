@@ -62,10 +62,17 @@ const handleSignInFn = async ()=>{
 
     if(result?.data?.role === "Customer"){
       await queryClient.invalidateQueries({ queryKey: ["getCart"] });
+     return setTimeout(()=>{
+            navigate('/');
+        },2000);
+
     }
 
     if(result?.data?.role === "Hotel Owner"){
       await queryClient.invalidateQueries({ queryKey: ["hotelOwnerShops"] });
+      return setTimeout(()=>{
+            navigate('/');
+        },2000);
     }
 
       // ⚠️⚠️⚠️⚠️ TELL TO REFETCHES THE DATA IF SUCCESS  ← tell React Query: go refetch user details now  ⚠️⚠️⚠️⚠️
@@ -107,9 +114,23 @@ const googleLogin = useGoogleLogin({
         // }
         toast.success("Welcome Back");
         dispatch(setuserData(res?.data));
+
+        
+    if(res?.data?.role === "Customer"){
+      await queryClient.invalidateQueries({ queryKey: ["getCart"] });
         return setTimeout(()=>{
             navigate('/');
         },2000);
+
+    }
+
+    if(res?.data?.role === "Hotel Owner"){
+      await queryClient.invalidateQueries({ queryKey: ["hotelOwnerShops"] });
+      return setTimeout(()=>{
+            navigate('/');
+        },2000);
+    }
+
     }
     else{
         toast.error(res?.data?.response ?? "Technical Issue in login. Please try again later.");

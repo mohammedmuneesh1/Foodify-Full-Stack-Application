@@ -31,6 +31,7 @@ function App() {
 
 
 
+
     
 
 
@@ -68,7 +69,7 @@ function App() {
       />}>
       <Route element = {<HotelOwnerDashboardLayout/>}>
       <Route path="/hotel-owner-dashboard/:shopId" element={<HotelOwnerDashboardPage />}/>
-      <Route path="/hotel-owner-dashboard/:shopId/orders" element={<HotelOwnerDashboardPage />}/>
+      <Route path="/hotel-owner-dashboard/:shopId/orders" element={<HotelOwnerOrderPage />}/>
       <Route path="/hotel-owner-dashboard/:shopId/menu" element={<HotelOwnerMenuPage />}/>
       <Route path="/hotel-owner-dashboard/:shopId/settings" element={<HotelOwnerSettingsPage />}/>
       </Route>
@@ -91,6 +92,10 @@ function App() {
     <Route
       path="/cart"
       element={<CartPage />}
+    />
+    <Route
+      path="/my-orders"
+      element={<CustomerOrderPage />}
     />
   </Route>
 
@@ -145,6 +150,8 @@ export default App
 
 import { Outlet } from "react-router-dom";
 import NavBar from './components/NavBar'
+import CustomerOrderPage from './pages/dashboards/customer/CustomerOrderPage'
+import HotelOwnerOrderPage from './pages/dashboards/hotelOwner/HotelOwnerOrderPage'
 
 const CustomerLayout = () => {
   return (

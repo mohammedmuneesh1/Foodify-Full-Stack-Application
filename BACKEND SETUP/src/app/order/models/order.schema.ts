@@ -23,6 +23,7 @@ const orderItemSchema = new mongoose.Schema(
       _id: mongoose.Schema.Types.ObjectId,
       name: String,
       price: Number,
+      
     },
     // Addons snapshot at time of order
     addons: [
@@ -57,6 +58,7 @@ const deliveryAddressSchema = new mongoose.Schema(
     label: {
       type: String,                         // e.g. "Home", "Work", "Other"
       trim: true,
+      enum: ["Home", "Work", "Other"],
     },
     
     addressLine: {
