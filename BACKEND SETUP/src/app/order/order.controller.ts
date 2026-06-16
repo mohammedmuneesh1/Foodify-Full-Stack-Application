@@ -215,15 +215,18 @@ export async function UPDATE_ORDER_STATUS(
 
 
   const validStatuses = [
-    "pending",
-    "confirmed",
-    "preparing",
-    "out_for_delivery",
-    "delivered",
-    "cancelled",
-    "refund_initiated",
-    "refunded",
-  ];
+        "pending",       // just placed, awaiting confirmation
+        "confirmed",     // shop confirmed
+        "preparing",     // shop is preparing
+        "out_for_delivery",
+        "delivered",
+        "picked_up",
+        "ready_for_pickup",
+        "rider_assigned",
+        "cancelled",
+        "refund_initiated",
+        "refunded",
+      ];
 
   if (!validStatuses.includes(status)) {
     return ResponseHandler(res, 400, false, null, "Invalid status.");
@@ -313,7 +316,7 @@ export async function GET_SHOP_ORDERS(
   const { status } = req.query;
  
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Number(req.query.limit) || 1;
+  const limit = Number(req.query.limit) || 10;
   const skip =  limit * (page - 1);
 
   const filter: any = { shop: shopId };

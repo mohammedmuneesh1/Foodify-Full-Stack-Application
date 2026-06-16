@@ -39,7 +39,7 @@ export const GET_HOTEL_OWNERS_ORDER_API = async (shopId:string,query:object | nu
 
 export const UPDATE_ORDER_STATUS_API = async (orderId:string, status:string)=>{
     try {
-        const res =await axiosInstance.patch(`/api/orders/${orderId}/status`,{status});
+        const res =await axiosInstance.put(`/api/orders/${orderId}/status`,{status});
         return res?.data;
     } catch (error:unknown) {
         return axiosErrorHandler(error);

@@ -79,6 +79,8 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled:         'bg-red-50     text-red-700     border-red-200',
   refund_initiated : 'bg-amber-50   text-amber-700   border-amber-200',
   refunded:          'bg-green-50   text-green-700   border-green-200',
+  ready_for_pickup:  'bg-cyan-50    text-cyan-700    border-cyan-200',
+  picked_up :        'bg-teal-50    text-teal-700    border-teal-200',
 }
 
 function formatDate(iso: string) {

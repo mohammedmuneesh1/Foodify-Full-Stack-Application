@@ -197,6 +197,9 @@ const orderSchema = new mongoose.Schema(
         "preparing",     // shop is preparing
         "out_for_delivery",
         "delivered",
+        "ready_for_pickup",
+        "picked_up",
+        "rider_assigned",
         "cancelled",
         "refund_initiated",
         "refunded",
@@ -228,6 +231,17 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "deliveryPartner",
       default: null,
+    },
+
+    assignedTo:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "deliveryPartner",
+        default: null,
+    },
+    deliveryAssignment:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "deliveryAssignment",
+        default: null,
     },
   },
   { timestamps: true }                      // createdAt = order placed time
